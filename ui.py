@@ -136,12 +136,12 @@ class Window:
         @self.window.event
         def on_key_press(key, modifiers):
             operations = {
-                ord('W'): self.cube.rotate_top,
-                ord('Y'): self.cube.rotate_bottom,
-                ord('R'): self.cube.rotate_front,
-                ord('O'): self.cube.rotate_back,
-                ord('G'): self.cube.rotate_left,
-                ord('B'): self.cube.rotate_right
+                ord('U'): self.cube.rotate_top,
+                ord('D'): self.cube.rotate_bottom,
+                ord('F'): self.cube.rotate_front,
+                ord('B'): self.cube.rotate_back,
+                ord('L'): self.cube.rotate_left,
+                ord('R'): self.cube.rotate_right
             }
             if key in operations:
                 times = 3 if (modifiers&1) else 1

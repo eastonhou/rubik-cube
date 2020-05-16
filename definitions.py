@@ -2,6 +2,11 @@ class Cube:
     def __init__(self):
         self.reset()
 
+    def copy(self):
+        cube = Cube()
+        cube.data = [x.copy() for x in self.data]
+        return cube
+
     def reset(self):
         self.data = [
             ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'],
