@@ -1,4 +1,5 @@
 class Cube:
+    FINALE = 'wwwwwwwwwyyyyyyyyyrrrrrrrrrooooooooogggggggggbbbbbbbbb'.__hash__()
     def __init__(self, data=None):
         if data is not None:
             self.data = data

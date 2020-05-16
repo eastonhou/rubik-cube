@@ -69,13 +69,6 @@ def load_model():
         model.load_state_dict(ckpt['model'])
     return model.to(0)
 
-_FINALE = flatten(Cube().data)
-def predict(model, cube):
-    if flatten(cube.data) == _FINALE:
-        return 4
-    level = model([cube])[0].argmax(-1).item()
-    return level
-
 def _determine_last_operations(seq):
     if len(seq)>=3 and seq[-3] == seq[-2] == seq[-1]:
         return seq[-1], 3
@@ -115,13 +108,8 @@ def search(model, cube, level, sequence, maxdepth, cache):
     if len(sequence) >= maxdepth:
         return None
     _ops, _cubes = zip(*_valid_operations(cube, sequence, get_operations(level)))
-    if level < 3:
-        _levels = model.predict(_cubes, level)
-    else:
-        _levels = [3]*len(_ops)
+    _levels = model.predict(_cubes, level)
     for _op, _cube, _level in zip(_ops, _cubes, _levels):
-        if level == 3 and flatten(cube.data) == _FINALE:
-            return sequence+[_op]
         if _level > level:
             return sequence+[_op]
     for _op, _cube in zip(_ops, _cubes):
@@ -143,7 +131,7 @@ def search2(model, cube, level):
             _ops = random_operations(level, np.random.randint(1, maxdepth))
             _cube = cube.copy()
             apply_operations(_cube, _ops)
-            if level == 3 and _FINALE == flatten(_cube.data):
+            if level == 3 and Cube.FINALE == _cube.hash:
                 return _ops
             ops.append(_ops)
             cubes.append(_cube)
@@ -168,7 +156,7 @@ def solve(cube):
             print(f'current level: {level}')
             if level == 4:
                 break
-            if level in [0, 1, 3]:
+            if level in [0, 1, 2, 3]:
                 _cache = {}
                 for maxdepth in range(1, 40):
                     _sequence = search(model, cube, level, [], maxdepth, _cache)
@@ -207,10 +195,10 @@ if __name__ == '__main__':
         list('rwbybygrg')
     ])
     apply_operations(cube, ['B','R','U','F','F','R'])
-    #apply_operations(cube, ['U','L2','F','D','U','B','B','R2','L2','D','B','R2','B'])
+    apply_operations(cube, ['L2','B','L2','B','L2','B','U','R2','D','L2','B'])
+    apply_operations(cube, ['U','R2','B2','U','D','B2','U'])
+    #apply_operations(cube, ['L2','B2','B2','U','L2','L2','F2','R2','D','B2','D','B2','B2','F2','R2','D','F2'])
     assert cube.validate()
     sequence = solve(cube)
     for op in sequence:
         apply_operation(cube, op)
-    level = predict(None, cube)
-    assert level == 4
