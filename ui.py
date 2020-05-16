@@ -64,7 +64,7 @@ class Shader:
         for i in range(9):
             sc = face[i]
             x0 = offset_map[sc[0]]
-            igrid = int(sc[1])
+            igrid = int(sc[1]) if len(sc)>1 else 4
             r, c = igrid//3, igrid%3
             y, x = r/3, c/18+x0
             coords[i,0] = (x,y)

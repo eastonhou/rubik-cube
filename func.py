@@ -6,39 +6,27 @@ def flatten(l2):
     return [item for l1 in l2 for item in l1]
 
 def make_cube(label):
-    def _pair(nonzero):
-        r = np.random.randint(1 if nonzero else 0, 4)
-        return r//2, r%2
-    def _c3_sequence(nonzero):
-        length = np.random.randint(0, 20)
+    def _sample(operations, base):
+        size = np.random.randint(base, 20)
+        return np.random.choice(operations, size).tolist()
+    def _c3_sequence(base):
+        length = np.random.randint(base, 50)
         operations = np.random.choice(get_operations(3), length).tolist()
         return operations
-    def _c2_sequence(nonzero):
-        operations = _c3_sequence(False)
-        u, d = _pair(nonzero)
-        if u:
-            operations.append('U')
-        if d:
-            operations.append('D')
+    def _c2_sequence(base):
+        operations = _c3_sequence(20)
+        operations += _sample(['U','D'], base)
         return operations
-    def _c1_sequence(nonzero):
-        operations = _c2_sequence(False)
-        f, b = _pair(nonzero)
-        if f:
-            operations.append('F')
-        if b:
-            operations.append('B')
+    def _c1_sequence(base):
+        operations = _c2_sequence(10)
+        operations += _sample(['F','B'], base)
         return operations
-    def _c0_sequence(nonzero):
-        operations = _c1_sequence(False)
-        l, r = _pair(nonzero)
-        if l:
-            operations.append('L')
-        if r:
-            operations.append('R')
+    def _c0_sequence(base):
+        operations = _c1_sequence(10)
+        operations += _sample(['L','R'], base)
         return operations
     operations = [_c0_sequence, _c1_sequence, _c2_sequence, _c3_sequence]
-    seq = operations[label](True)
+    seq = operations[label](2)
     np.random.shuffle(seq)
     cube = Cube()
     for op in seq:
@@ -53,6 +41,14 @@ def apply_operation(cube, operation):
     }
     for _ in range(len(operation)):
         operations[operation[0]]()
+
+def apply_operations(cube, operations):
+    for op in operations:
+        #cube0 = cube.copy()
+        apply_operation(cube, op)
+        #if False == cube.validate():
+        #    apply_operation(cube0, op)
+        #    assert False
 
 def save_model(model):
     ckpt = {
@@ -111,21 +107,56 @@ def get_operations(level):
     }
     return operations[level]
 
-def search(model, cube, level, sequence):
-    if len(sequence) >= 10:
+def random_operations(level, size):
+    operations = get_operations(level)
+    return np.random.choice(operations, size)
+
+def search(model, cube, level, sequence, maxdepth, cache=set()):
+    if len(sequence) >= maxdepth:
         return None
     _ops, _cubes = zip(*_valid_operations(cube, sequence, get_operations(level)))
-    _levels = model.predict(_cubes)
+    if level < 3:
+        _levels = model.predict(_cubes)
+    else:
+        _levels = [3]*len(_ops)
     for _op, _cube, _level in zip(_ops, _cubes, _levels):
         if level == 3 and flatten(cube.data) == _FINALE:
             return sequence+[_op]
         if _level > level:
             return sequence+[_op]
     for _op, _cube in zip(_ops, _cubes):
+        if _cube.hash in cache:
+            continue
         _sequence = sequence+[_op]
-        _sequence = search(model, _cube, level, _sequence)
+        _sequence = search(model, _cube, level, _sequence, maxdepth)
         if _sequence is not None:
             return _sequence
+        cache.add(_cube.hash)
+    return None
+
+def search2(model, cube, level):
+    from models import Model
+    model = load_model()
+    model.eval()
+    maxdepths = [8, 16, 24, 36]
+    maxdepth = maxdepths[level]
+    for _ in range(10000000):
+        ops, cubes = [], []
+        for _ in range(256):
+            _ops = random_operations(level, np.random.randint(1, maxdepth))
+            _cube = cube.copy()
+            apply_operations(_cube, _ops)
+            if level == 3 and _FINALE == flatten(_cube.data):
+                return _ops
+            ops.append(_ops)
+            cubes.append(_cube)
+        if level < 3:
+            levels = model(cubes).argmax(-1)
+            if levels.max() > level:
+                levels = model.predict(cubes)
+                x = levels.argmax()
+                if levels[x] > level:
+                    return ops[x].tolist()
     return None
 
 def solve(cube):
@@ -139,16 +170,44 @@ def solve(cube):
             level = predict(model, cube)
             if level == 4:
                 break
-            _sequence = search(model, cube, level, [])
+            if level == 3:
+                for maxdepth in range(1, 40):
+                    print(f'searching level {level} with depth={maxdepth}')
+                    _sequence = search(None, cube, level, [], maxdepth=maxdepth)
+                    if _sequence is not None:
+                        break
+            else:
+                _sequence = search2(model, cube, level)
             if _sequence is not None:
                 sequence += _sequence
                 for _op in _sequence:
                     apply_operation(cube, _op)
-                print(f'level {level} solved [{"".join(_sequence)}].')
+                assert cube.validate()
+                print(f'level {level} solved [{",".join(_sequence)}].')
+                print(f'==state: {["".join(x) for x in cube.data]}')
     return sequence
 
 if __name__ == '__main__':
-    cube = make_cube(0)
+    #cube = make_cube(0)
+    '''
+    cube = Cube([
+        list('wybwwwywy'),
+        list('wgowyrwyb'),
+        list('rgrbrboog'),
+        list('rgbooryrr'),
+        list('obbggygog'),
+        list('grwobyybo')
+    ])
+    '''
+    cube = Cube([
+        list('booywrgob'),
+        list('gwyyybrby'),
+        list('owwwrbrgo'),
+        list('ygogorrob'),
+        list('wowggbyrw'),
+        list('rwbybygrg')
+    ])
+    assert cube.validate()
     sequence = solve(cube)
     for op in sequence:
         apply_operation(cube, op)

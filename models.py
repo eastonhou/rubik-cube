@@ -22,18 +22,22 @@ class Model(nn.Module):
             nn.Linear(embedding_dim*3, 4))
 
     def forward(self, cubes):
-        inputs = [[self.gridmap[g] for g in func.flatten(x.data)] for x in cubes]
+        inputs = [[self.gridmap[g[0]] for g in func.flatten(x.data)] for x in cubes]
         inputs = self.tensor(inputs)
         x = self.embeddings(inputs)
         x = x.view(x.shape[0], -1)
         output = self.projection(x)
         return output
 
-    def predict(self, cubes, samples=16):
+    def predict(self, cubes, samples=8):
         levels = self.forward(cubes).argmax(-1).cpu().numpy()
-        operations = [func.get_operations(x) for x in levels]
-        operations = [np.random.choice(x, samples) for x in operations]
+        operations = [
+            [func.random_operations(x, np.random.randint(1, 10)) for _ in range(samples)]
+            for x in levels]
         sample_cubes = [[x.copy() for _ in range(samples)] for x in cubes]
+        for _sample_cubes, _sample_operations in zip(sample_cubes, operations):
+            for _cube, _operations in zip(_sample_cubes, _sample_operations):
+                func.apply_operations(_cube, _operations)
         flatten_cubes = func.flatten(sample_cubes)
         levels = self.forward(flatten_cubes).argmax(-1).view(-1, samples).cpu().numpy()
         least_levels = levels.min(axis=-1)
@@ -48,5 +52,6 @@ class Model(nn.Module):
         gridmap = {}
         for face in cube.data:
             for grid in face:
-                gridmap[grid] = len(gridmap)
+                if grid[0] not in gridmap:
+                    gridmap[grid[0]] = len(gridmap)
         return gridmap
