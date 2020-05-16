@@ -125,9 +125,9 @@ def search(model, cube, level, sequence, maxdepth, cache):
         if _level > level:
             return sequence+[_op]
     for _op, _cube in zip(_ops, _cubes):
-        if _cube.hash in cache and cache[_cube.hash] < len(sequence):
+        if _cube.hash in cache and cache[_cube.hash] >= maxdepth-len(sequence):
             continue
-        cache[_cube.hash] = len(sequence)
+        cache[_cube.hash] = maxdepth-len(sequence)
         _sequence = sequence+[_op]
         _sequence = search(model, _cube, level, _sequence, maxdepth, cache)
         if _sequence is not None:
@@ -169,8 +169,8 @@ def solve(cube):
             if level == 4:
                 break
             if level in [0, 1, 3]:
+                _cache = {}
                 for maxdepth in range(1, 40):
-                    _cache = {}
                     _sequence = search(model, cube, level, [], maxdepth, _cache)
                     print(f'{len(_cache)} steps sought. level={level} depth={maxdepth}')
                     if _sequence is not None:
@@ -206,7 +206,7 @@ if __name__ == '__main__':
         list('wowggbyrw'),
         list('rwbybygrg')
     ])
-    #apply_operations(cube, ['B','R','U','F','F','R'])
+    apply_operations(cube, ['B','R','U','F','F','R'])
     #apply_operations(cube, ['U','L2','F','D','U','B','B','R2','L2','D','B','R2','B'])
     assert cube.validate()
     sequence = solve(cube)
