@@ -131,17 +131,12 @@ def search2(model, cube, level):
             _ops = random_operations(level, np.random.randint(1, maxdepth))
             _cube = cube.copy()
             apply_operations(_cube, _ops)
-            if level == 3 and Cube.FINALE == _cube.hash:
-                return _ops
             ops.append(_ops)
             cubes.append(_cube)
-        if level < 3:
-            levels = model(cubes).argmax(-1)
-            if levels.max() > level:
-                levels = model.predict(cubes, level)
-                x = levels.argmax()
-                if levels[x] > level:
-                    return ops[x].tolist()
+        levels = model.predict(cubes)
+        if levels.max() > level:
+            x = levels.argmax()
+            return ops[x].tolist()
     return None
 
 def solve(cube):

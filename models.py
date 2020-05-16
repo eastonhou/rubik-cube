@@ -33,6 +33,8 @@ class Model(nn.Module):
         if level == 3:
             return [4 if x.hash == Cube.FINALE else 3 for x in cubes]
         levels = self.forward(cubes).argmax(-1).cpu().numpy()
+        if levels.max() <= level:
+            return levels
         operations = [
             [func.random_operations(x, np.random.randint(1, 10)) for _ in range(samples)]
             for x in levels]
