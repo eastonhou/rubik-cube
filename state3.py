@@ -12,7 +12,7 @@ def collect(cube, cache, depth=0):
         cache[_cube.hash] = depth
         if len(cache) % 100000 == 0:
             print(f'{len(cache)}')
-        if depth < 12:
+        if depth < 13:
             collect(_cube, cache, depth+1)
 
 if __name__ == '__main__':
