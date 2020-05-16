@@ -116,7 +116,7 @@ def search(model, cube, level, sequence, maxdepth, cache=set()):
         return None
     _ops, _cubes = zip(*_valid_operations(cube, sequence, get_operations(level)))
     if level < 3:
-        _levels = model.predict(_cubes)
+        _levels = model.predict(_cubes, level)
     else:
         _levels = [3]*len(_ops)
     for _op, _cube, _level in zip(_ops, _cubes, _levels):
@@ -127,18 +127,15 @@ def search(model, cube, level, sequence, maxdepth, cache=set()):
     for _op, _cube in zip(_ops, _cubes):
         if _cube.hash in cache:
             continue
+        cache.add(_cube.hash)
         _sequence = sequence+[_op]
-        _sequence = search(model, _cube, level, _sequence, maxdepth)
+        _sequence = search(model, _cube, level, _sequence, maxdepth, cache)
         if _sequence is not None:
             return _sequence
-        cache.add(_cube.hash)
     return None
 
 def search2(model, cube, level):
-    from models import Model
-    model = load_model()
-    model.eval()
-    maxdepths = [8, 16, 24, 36]
+    maxdepths = [8, 20, 40, 60]
     maxdepth = maxdepths[level]
     for _ in range(10000000):
         ops, cubes = [], []
@@ -153,7 +150,7 @@ def search2(model, cube, level):
         if level < 3:
             levels = model(cubes).argmax(-1)
             if levels.max() > level:
-                levels = model.predict(cubes)
+                levels = model.predict(cubes, level)
                 x = levels.argmax()
                 if levels[x] > level:
                     return ops[x].tolist()
@@ -167,13 +164,15 @@ def solve(cube):
     with torch.no_grad():
         sequence = []
         while True:
-            level = predict(model, cube)
+            level = model.predict([cube], 0, 16)[0]
+            print(f'current level: {level}')
             if level == 4:
                 break
-            if level == 3:
+            if level in [0, 1, 3]:
                 for maxdepth in range(1, 40):
-                    print(f'searching level {level} with depth={maxdepth}')
-                    _sequence = search(None, cube, level, [], maxdepth=maxdepth)
+                    _cache = set()
+                    _sequence = search(model, cube, level, [], maxdepth, _cache)
+                    print(f'{len(_cache)} steps sought. level={level} depth={maxdepth}')
                     if _sequence is not None:
                         break
             else:
@@ -207,6 +206,8 @@ if __name__ == '__main__':
         list('wowggbyrw'),
         list('rwbybygrg')
     ])
+    apply_operations(cube, ['B','U','F','F','B','D','R'])
+    #apply_operations(cube, ['U','L2','F','D','U','B','B','R2','L2','D','B','R2','B'])
     assert cube.validate()
     sequence = solve(cube)
     for op in sequence:

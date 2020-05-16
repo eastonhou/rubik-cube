@@ -15,6 +15,7 @@ class Cube:
         if self._hash is None:
             from func import flatten
             self._hash = ''.join(flatten(self.data)).__hash__()
+            #self._hash = ''.join(flatten(self.data))
         return self._hash
 
     def reset(self):

@@ -1,4 +1,4 @@
-import torch
+import torch, pickle
 import numpy as np
 from torch import nn
 from definitions import Cube
@@ -20,6 +20,9 @@ class Model(nn.Module):
             nn.Linear(embedding_dim*6, embedding_dim*3),
             nn.ReLU(inplace=True),
             nn.Linear(embedding_dim*3, 4))
+        with open('state3.pkl', 'rb') as file:
+            self.state3 = pickle.load(file)
+            print(f'state3 {len(self.state3)} loaded.')
 
     def forward(self, cubes):
         inputs = [[self.gridmap[g[0]] for g in func.flatten(x.data)] for x in cubes]
@@ -29,7 +32,9 @@ class Model(nn.Module):
         output = self.projection(x)
         return output
 
-    def predict(self, cubes, samples=8):
+    def predict(self, cubes, level, samples=8):
+        if level == 2:
+            return np.array([3 if x.hash in self.state3 else 2 for x in cubes])
         levels = self.forward(cubes).argmax(-1).cpu().numpy()
         operations = [
             [func.random_operations(x, np.random.randint(1, 10)) for _ in range(samples)]
