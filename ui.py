@@ -111,19 +111,7 @@ class Window:
         config.samples = 16
         self.window = app.Window(height=800, width=1280, config=config)
         self.shader = Shader()
-        #self.cube = Cube()
-        cube = Cube([
-            list('booywrgob'),
-            list('gwyyybrby'),
-            list('owwwrbrgo'),
-            list('ygogorrob'),
-            list('wowggbyrw'),
-            list('rwbybygrg')
-        ])
-        import func
-        func.apply_operations(cube, ['B','U','F','F','B','D','R'])
-        func.apply_operations(cube, ['U','L2','F','D','U','B','B','R2','L2','D','B','R2','B','L2','L2'])
-        self.cube = cube
+        self.cube = Cube(debug=True)
         self.shader.apply_cube(self.cube)
         @self.window.event
         def on_init():
