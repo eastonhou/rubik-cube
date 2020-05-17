@@ -1,9 +1,27 @@
-import torch, os
+import torch, os, pickle
 import numpy as np
 from definitions import Cube
 
 def flatten(l2):
     return [item for l1 in l2 for item in l1]
+
+def mkdir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def ensure_folder(filename):
+    folder = os.path.dirname(os.path.abspath(filename))
+    mkdir(folder)
+    return folder
+
+def dump(path, obj):
+    ensure_folder(path)
+    with open(path, 'wb') as file:
+        pickle.dump(obj, file)
+
+def load(path):
+    with open(path, 'rb') as file:
+        return pickle.load(file)
 
 def make_cube(label):
     def _sample(operations, base):
@@ -54,10 +72,8 @@ def save_model(model):
     ckpt = {
         'model': model.state_dict()
     }
-    folder = 'checkpoints'
-    path = os.path.join(folder, 'model.pt')
-    if not os.path.isdir(folder):
-        os.mkdir(folder)
+    path = 'checkpoints/model.pt'
+    ensure_folder(path)
     torch.save(ckpt, path)
 
 def load_model():
@@ -123,12 +139,12 @@ def search(model, cube, level, sequence, maxdepth, cache):
     return None
 
 def search2(model, cube, level):
-    maxdepths = [8, 20, 40, 60]
+    maxdepths = [7, 10, 13, 15]
     maxdepth = maxdepths[level]
     for _ in range(10000000):
         ops, cubes = [], []
         for _ in range(256):
-            _ops = random_operations(level, np.random.randint(1, maxdepth))
+            _ops = random_operations(level, np.random.randint(1, maxdepth+1))
             _cube = cube.copy()
             apply_operations(_cube, _ops)
             ops.append(_ops)
@@ -144,18 +160,19 @@ def solve(cube):
     model = load_model()
     model.eval()
     cube = cube.copy()
+    level = 0
     with torch.no_grad():
         sequence = []
         while True:
-            level = model.predict([cube], 0, 16)[0]
+            level = model.predict([cube], level, 8)[0]
             print(f'current level: {level}')
             if level == 4:
                 break
             if level in [0, 1, 2, 3]:
                 _cache = {}
-                for maxdepth in range(1, 40):
+                for maxdepth in range(1, 17):
                     _sequence = search(model, cube, level, [], maxdepth, _cache)
-                    print(f'{len(_cache)} steps sought. level={level} depth={maxdepth}')
+                    print(f'{len(_cache)}:{sum(_cache.values())} level={level} depth={maxdepth}')
                     if _sequence is not None:
                         break
             else:
@@ -170,7 +187,17 @@ def solve(cube):
     return sequence
 
 if __name__ == '__main__':
+    '''
+    print('solving level 0')
+    cube = make_cube(0)
+    sequence = solve(cube)
+    print(cube, sequence)
+    print('level 0 solved')
+    '''
+    #apply_operations(cube, seq[::-1])
     #cube = make_cube(0)
+    #sequence = solve(cube)
+    #print(sequence)
     '''
     cube = Cube([
         list('wybwwwywy'),
@@ -191,7 +218,8 @@ if __name__ == '__main__':
     ])
     apply_operations(cube, ['B','R','U','F','F','R'])
     apply_operations(cube, ['L2','B','L2','B','L2','B','U','R2','D','L2','B'])
-    apply_operations(cube, ['U','R2','B2','U','D','B2','U'])
+    #apply_operations(cube, ['U','R2','B2','U','D','B2','U'])
+    #assert cube.hash in load('state3.pkl')
     #apply_operations(cube, ['L2','B2','B2','U','L2','L2','F2','R2','D','B2','D','B2','B2','F2','R2','D','F2'])
     assert cube.validate()
     sequence = solve(cube)

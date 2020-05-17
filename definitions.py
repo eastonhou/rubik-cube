@@ -1,11 +1,11 @@
 class Cube:
-    FINALE = 'wwwwwwwwwyyyyyyyyyrrrrrrrrrooooooooogggggggggbbbbbbbbb'.__hash__()
-    def __init__(self, data=None):
+    FINALE = 'wwwwwwwwwyyyyyyyyyrrrrrrrrrooooooooogggggggggbbbbbbbbb'
+    def __init__(self, data=None, debug=False):
         if data is not None:
             self.data = data
             self._hash = None
         else:
-            self.reset()
+            self.reset(debug)
 
     def copy(self):
         cube = Cube([x for x in self.data])
@@ -15,28 +15,28 @@ class Cube:
     def hash(self):
         if self._hash is None:
             from func import flatten
-            self._hash = ''.join(flatten(self.data)).__hash__()
+            self._hash = ''.join(flatten(self.data))
             #self._hash = ''.join(flatten(self.data))
         return self._hash
 
-    def reset(self):
-        '''
-        self.data = [
-            ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'],
-            ['y0', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8'],
-            ['r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8'],
-            ['o0', 'o1', 'o2', 'o3', 'o4', 'o5', 'o6', 'o7', 'o8'],
-            ['g0', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8'],
-            ['b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8']]
-        '''
-        self.data = [
-            ['w']*9,
-            ['y']*9,
-            ['r']*9,
-            ['o']*9,
-            ['g']*9,
-            ['b']*9
-        ]
+    def reset(self, debug):
+        if debug:
+            self.data = [
+                ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'],
+                ['y0', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8'],
+                ['r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8'],
+                ['o0', 'o1', 'o2', 'o3', 'o4', 'o5', 'o6', 'o7', 'o8'],
+                ['g0', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8'],
+                ['b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8']]
+        else:
+            self.data = [
+                ['w']*9,
+                ['y']*9,
+                ['r']*9,
+                ['o']*9,
+                ['g']*9,
+                ['b']*9
+            ]
         self._hash = None
 
     def rotate_front(self):
