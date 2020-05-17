@@ -26,8 +26,10 @@ class DataProducer:
     def size(self):
         return len(self.queue)
 
-    def get(self, size):
-        while self.size < self.minsize and not self.stop_flag:
+    def get(self, size, force_size=False):
+        def condition():
+            return (size <= self.size) if force_size else (self.size >= self.minsize)
+        while not condition() and not self.stop_flag:
             time.sleep(0.1)
         self.lock.acquire()
         records = self.queue[:size]
