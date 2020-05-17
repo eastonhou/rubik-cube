@@ -23,6 +23,7 @@ def load(path):
     with open(path, 'rb') as file:
         return pickle.load(file)
 
+STATE3 = load('state3.pkl')
 def make_cube(label):
     def _sample(operations, base):
         size = np.random.randint(base, 20)
@@ -44,11 +45,15 @@ def make_cube(label):
         operations += _sample(['L','R'], base)
         return operations
     operations = [_c0_sequence, _c1_sequence, _c2_sequence, _c3_sequence]
-    seq = operations[label](2)
-    np.random.shuffle(seq)
-    cube = Cube()
-    for op in seq:
-        apply_operation(cube, op)
+    while True:
+        seq = operations[label](2)
+        np.random.shuffle(seq)
+        cube = Cube()
+        apply_operations(cube, seq)
+        if label == 2 and cube.hash in STATE3:
+            continue
+        else:
+            break
     return cube
 
 def apply_operation(cube, operation):
@@ -216,8 +221,8 @@ if __name__ == '__main__':
         list('wowggbyrw'),
         list('rwbybygrg')
     ])
-    apply_operations(cube, ['B','R','U','F','F','R'])
-    apply_operations(cube, ['L2','B','L2','B','L2','B','U','R2','D','L2','B'])
+    #apply_operations(cube, ['B','R','U','F','F','R'])
+    #apply_operations(cube, ['L2','B','L2','B','L2','B','U','R2','D','L2','B'])
     #apply_operations(cube, ['U','R2','B2','U','D','B2','U'])
     #assert cube.hash in load('state3.pkl')
     #apply_operations(cube, ['L2','B2','B2','U','L2','L2','F2','R2','D','B2','D','B2','B2','F2','R2','D','F2'])
