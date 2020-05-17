@@ -33,10 +33,10 @@ class Model(nn.Module):
         return output
 
     def predict(self, cubes, level, samples=8):
-        if level == 3:
-            return [4 if x.hash == Cube.FINALE else 3 for x in cubes]
         if level == 2:
-            return [3 if x.hash in self.state3 else 2 for x in cubes]
+            return np.array([3 if x.hash in self.state3 else 2 for x in cubes])
+        if level == 3:
+            return np.array([4 if x.hash == Cube.FINALE else 3 for x in cubes])
         levels = self.forward(cubes).argmax(-1).cpu().numpy()
         if levels.max() <= level:
             return levels

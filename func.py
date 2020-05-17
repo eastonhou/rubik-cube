@@ -25,32 +25,32 @@ def load(path):
 
 STATE3 = load('state3.pkl')
 def make_cube(label):
-    def _sample(operations, base):
-        size = np.random.randint(base, 20)
+    def _sample(operations, sizes=[1,3,5,7,8,9,10,11,12,13,14,15]):
+        size = np.random.choice(sizes)
         return np.random.choice(operations, size).tolist()
-    def _c3_sequence(base):
-        length = np.random.randint(base, 50)
+    def _c3_sequence():
+        length = np.random.randint(0, 16)
         operations = np.random.choice(get_operations(3), length).tolist()
         return operations
-    def _c2_sequence(base):
-        operations = _c3_sequence(20)
-        operations += _sample(['U','D'], base)
+    def _c2_sequence():
+        operations = _c3_sequence() if np.random.ranf() < 0.99 else []
+        operations += _sample(['U','D'])
         return operations
-    def _c1_sequence(base):
-        operations = _c2_sequence(10)
-        operations += _sample(['F','B'], base)
+    def _c1_sequence():
+        operations = _c2_sequence() if np.random.ranf() < 0.99 else []
+        operations += _sample(['F','B'])
         return operations
-    def _c0_sequence(base):
-        operations = _c1_sequence(10)
-        operations += _sample(['L','R'], base)
+    def _c0_sequence():
+        operations = _c1_sequence() if np.random.ranf() < 0.99 else []
+        operations += _sample(['L','R'])
         return operations
     operations = [_c0_sequence, _c1_sequence, _c2_sequence, _c3_sequence]
     while True:
-        seq = operations[label](2)
+        seq = operations[label]()
         np.random.shuffle(seq)
         cube = Cube()
         apply_operations(cube, seq)
-        if label == 2 and cube.hash in STATE3:
+        if label < 3 and cube.hash in STATE3:
             continue
         else:
             break
@@ -144,7 +144,7 @@ def search(model, cube, level, sequence, maxdepth, cache):
     return None
 
 def search2(model, cube, level):
-    maxdepths = [7, 10, 13, 15]
+    maxdepths = [7, 13, 17, 19]
     maxdepth = maxdepths[level]
     for _ in range(10000000):
         ops, cubes = [], []
@@ -154,13 +154,13 @@ def search2(model, cube, level):
             apply_operations(_cube, _ops)
             ops.append(_ops)
             cubes.append(_cube)
-        levels = model.predict(cubes)
+        levels = model.predict(cubes, level)
         if levels.max() > level:
             x = levels.argmax()
             return ops[x].tolist()
     return None
 
-def solve(cube):
+def solve(cube, best_levels):
     from models import Model
     model = load_model()
     model.eval()
@@ -173,7 +173,7 @@ def solve(cube):
             print(f'current level: {level}')
             if level == 4:
                 break
-            if level in [0, 1, 2, 3]:
+            if level in best_levels:
                 _cache = {}
                 for maxdepth in range(1, 17):
                     _sequence = search(model, cube, level, [], maxdepth, _cache)
@@ -192,6 +192,7 @@ def solve(cube):
     return sequence
 
 if __name__ == '__main__':
+    pass
     '''
     print('solving level 0')
     cube = make_cube(0)
@@ -213,20 +214,3 @@ if __name__ == '__main__':
         list('grwobyybo')
     ])
     '''
-    cube = Cube([
-        list('booywrgob'),
-        list('gwyyybrby'),
-        list('owwwrbrgo'),
-        list('ygogorrob'),
-        list('wowggbyrw'),
-        list('rwbybygrg')
-    ])
-    #apply_operations(cube, ['B','R','U','F','F','R'])
-    #apply_operations(cube, ['L2','B','L2','B','L2','B','U','R2','D','L2','B'])
-    #apply_operations(cube, ['U','R2','B2','U','D','B2','U'])
-    #assert cube.hash in load('state3.pkl')
-    #apply_operations(cube, ['L2','B2','B2','U','L2','L2','F2','R2','D','B2','D','B2','B2','F2','R2','D','F2'])
-    assert cube.validate()
-    sequence = solve(cube)
-    for op in sequence:
-        apply_operation(cube, op)
