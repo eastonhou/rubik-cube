@@ -109,6 +109,23 @@ class Cube:
     def face(self, n, layer=0):
         return self._data[n,:,layer]
 
+    __UMAP2__ = __UMAP__[__UMAP__]
+    __DMAP2__ = __DMAP__[__DMAP__]
+    __FMAP2__ = __FMAP__[__FMAP__]
+    __BMAP2__ = __BMAP__[__BMAP__]
+    __LMAP2__ = __LMAP__[__LMAP__]
+    __RMAP2__ = __RMAP__[__RMAP__]
+    __OPERATIONS__ = {
+        'U': __UMAP__, 'D': __DMAP__,
+        'F': __FMAP__, 'B': __BMAP__,
+        'L': __LMAP__, 'R': __RMAP__,
+        'U2': __UMAP2__, 'D2': __DMAP2__,
+        'F2': __FMAP2__, 'B2': __BMAP2__,
+        'L2': __LMAP2__, 'R2': __RMAP2__,
+    }
+    def apply_operation(self, operation):
+        self._apply_map(__class__.__OPERATIONS__[operation])
+
     def _apply_map(self, imap):
         self._data = self._data[imap,:]
         self._hash = None

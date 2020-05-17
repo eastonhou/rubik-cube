@@ -15,7 +15,8 @@ def _determine_last_operations(seq):
     return 'X', 0
 
 def _valid_operations(cube, sequence, operations):
-    _operations = np.random.choice(operations, 6, replace=False)
+    _operations = operations.copy()
+    np.random.shuffle(_operations)
     result = []
     for _op in _operations:
         _last_op, _last_count = _determine_last_operations(sequence)
@@ -23,7 +24,7 @@ def _valid_operations(cube, sequence, operations):
             continue
         else:
             _cube = cube.copy()
-            func.apply_operation(_cube, _op)
+            _cube.apply_operation(_op)
             result.append((_op, _cube))
     return result
 
@@ -38,8 +39,6 @@ class Producer(DataProducer):
         self.start()
 
     def _iterate(self, cube, sequence):
-        if len(sequence) >= self.depth:
-            return
         operations = func.get_operations(self.level)
         _ops, _cubes = zip(*_valid_operations(cube, sequence, operations))
         for _op, _cube in zip(_ops, _cubes):
@@ -50,7 +49,8 @@ class Producer(DataProducer):
             self.cache[_cube.hash] = self.depth-len(sequence)
             _sequence = sequence+[_op]
             self.put([(_sequence, _cube)])
-            self._iterate(_cube, _sequence)
+            if len(_sequence) < self.depth:
+                self._iterate(_cube, _sequence)
 
     def _worker(self):
         self._iterate(self.cube, [])

@@ -1,6 +1,5 @@
 import threading, time
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor
 
 class DataProducer:
     def __init__(self, minsize, maxsize):
@@ -11,7 +10,7 @@ class DataProducer:
 
     def start(self):
         self.stop_flag = False
-        run_async(self._worker)
+        self.thread = run_async(self._worker)
 
     def _worker(self):
         while not self.stop_flag:
@@ -37,13 +36,19 @@ class DataProducer:
         return records
 
     def put(self, records):
+        while self.size >= self.maxsize:
+            if self.stop_flag:
+                return
+            time.sleep(0.1)
         self.lock.acquire()
         self.queue += records
         self.lock.release()
 
     def cancel(self):
         self.stop_flag = True
+        self.thread.join()
 
 def run_async(target, *args):
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        return executor.submit(target, *args)
+    thread = threading.Thread(target=target, args=args)
+    thread.start()
+    return thread

@@ -57,22 +57,9 @@ def make_cube(label):
             break
     return cube
 
-def apply_operation(cube, operation):
-    operations = {
-        'U': cube.rotate_top, 'D': cube.rotate_bottom,
-        'F': cube.rotate_front, 'B': cube.rotate_back,
-        'L': cube.rotate_left, 'R': cube.rotate_right
-    }
-    for _ in range(len(operation)):
-        operations[operation[0]]()
-
 def apply_operations(cube, operations):
     for op in operations:
-        #cube0 = cube.copy()
-        apply_operation(cube, op)
-        #if False == cube.validate():
-        #    apply_operation(cube0, op)
-        #    assert False
+        cube.apply_operation(op)
 
 def save_model(model):
     ckpt = {
