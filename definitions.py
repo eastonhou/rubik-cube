@@ -1,114 +1,122 @@
+import numpy as np
+
+def _hash(value):
+    return hash(tuple(value))
+
 class Cube:
-    FINALE = 'wwwwwwwwwyyyyyyyyyrrrrrrrrrooooooooogggggggggbbbbbbbbb'
-    def __init__(self, data=None, debug=False):
-        if data is not None:
-            self.data = data
-            self._hash = None
+    FINALE = _hash(np.reshape(np.tile(np.arange(6), (9,1)).transpose(), -1))
+    @staticmethod
+    def from_data(data):
+        cmap = {k:v for v,k in enumerate('wyrogb')}
+        layer0 = np.array([[cmap[x] for x in y] for y in data], dtype=np.uint8)
+        layer1 = np.tile(np.full(9, 4, dtype=np.uint8), (6,1))
+        cube = Cube()
+        cube._data = np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
+        return cube
+
+    def to_data(self):
+        cmap = np.array(list('wyrogb'))
+        nmap = np.array(list('012345678'))
+        layer0, layer1 = cmap[self._data[...,0]], nmap[self._data[...,1]]
+        result = np.reshape(np.core.defchararray.add(layer0, layer1), (6,-1))
+        return result
+
+    def __init__(self, data=None):
+        if data is None:
+            self.reset()
         else:
-            self.reset(debug)
+            self._data = data
+            self._hash = None
 
     def copy(self):
-        cube = Cube([x for x in self.data])
-        return cube
+        return Cube(self._data)
 
     @property
     def hash(self):
         if self._hash is None:
-            from func import flatten
-            self._hash = ''.join(flatten(self.data))
-            #self._hash = ''.join(flatten(self.data))
+            self._hash = _hash(self.numpy())
         return self._hash
 
-    def reset(self, debug):
-        if debug:
-            self.data = [
-                ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'],
-                ['y0', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8'],
-                ['r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8'],
-                ['o0', 'o1', 'o2', 'o3', 'o4', 'o5', 'o6', 'o7', 'o8'],
-                ['g0', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8'],
-                ['b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8']]
-        else:
-            self.data = [
-                ['w']*9,
-                ['y']*9,
-                ['r']*9,
-                ['o']*9,
-                ['g']*9,
-                ['b']*9
-            ]
+    def numpy(self):
+        return np.reshape(self._data[...,0], -1)
+
+    def reset(self):
+        layer0 = np.tile(np.arange(6, dtype=np.uint8), (9,1)).transpose()
+        layer1 = np.tile(np.arange(9, dtype=np.uint8), (6,1))
+        self._data = np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
         self._hash = None
 
+    __FMAP__ = np.array([
+        0,1,2,3,4,5,45,48,51,
+        38,41,44,12,13,14,15,16,17,
+        20,23,26,19,22,25,18,21,24,
+        27,28,29,30,31,32,33,34,35,
+        36,37,8,39,40,7,42,43,6,
+        11,46,47,10,49,50,9,52,53])
     def rotate_front(self):
-        w, y, r, o, g, b = self.data
-        self.data = [
-            [w[0], w[1], w[2], w[3], w[4], w[5], b[0], b[3], b[6]],
-            [g[2], g[5], g[8], y[3], y[4], y[5], y[6], y[7], y[8]],
-            [r[2], r[5], r[8], r[1], r[4], r[7], r[0], r[3], r[6]],
-            o,
-            [g[0], g[1], w[8], g[3], g[4], w[7], g[6], g[7], w[6]],
-            [y[2], b[1], b[2], y[1], b[4], b[5], y[0], b[7], b[8]]]
-        self._hash = None
+        return self._apply_map(__class__.__FMAP__)
 
+    __BMAP__ = np.array([
+        42,39,36,3,4,5,6,7,8,
+        9,10,11,12,13,14,53,50,47,
+        18,19,20,21,22,23,24,25,26,
+        29,32,35,28,31,34,27,30,33,
+        15,37,38,16,40,41,17,43,44,
+        45,46,0,48,49,1,51,52,2])
     def rotate_back(self):
-        w, y, r, o, g, b = self.data
-        self.data = [
-            [g[6], g[3], g[0], w[3], w[4], w[5], w[6], w[7], w[8]],
-            [y[0], y[1], y[2], y[3], y[4], y[5], b[8], b[5], b[2]],
-            r,
-            [o[2], o[5], o[8], o[1], o[4], o[7], o[0], o[3], o[6]],
-            [y[6], g[1], g[2], y[7], g[4], g[5], y[8], g[7], g[8]],
-            [b[0], b[1], w[0], b[3], b[4], w[1], b[6], b[7], w[2]]]
-        self._hash = None
+        self._apply_map(__class__.__BMAP__)
 
+    __UMAP__ = np.array([
+        2,5,8,1,4,7,0,3,6,
+        9,10,11,12,13,14,15,16,17,
+        36,37,38,21,22,23,24,25,26,
+        45,46,47,30,31,32,33,34,35,
+        27,28,29,39,40,41,42,43,44,
+        18,19,20,48,49,50,51,52,53])
     def rotate_top(self):
-        w, y, r, o, g, b = self.data
-        self.data = [
-            [w[2], w[5], w[8], w[1], w[4], w[7], w[0], w[3], w[6]],
-            y,
-            [g[0], g[1], g[2], r[3], r[4], r[5], r[6], r[7], r[8]],
-            [b[0], b[1], b[2], o[3], o[4], o[5], o[6], o[7], o[8]],
-            [o[0], o[1], o[2], g[3], g[4], g[5], g[6], g[7], g[8]],
-            [r[0], r[1], r[2], b[3], b[4], b[5], b[6], b[7], b[8]]]
-        self._hash = None
+        self._apply_map(__class__.__UMAP__)
 
+    __DMAP__ = np.array([
+        0,1,2,3,4,5,6,7,8,
+        11,14,17,10,13,16,9,12,15,
+        18,19,20,21,22,23,51,52,53,
+        27,28,29,30,31,32,42,43,44,
+        36,37,38,39,40,41,24,25,26,
+        45,46,47,48,49,50,33,34,35])
     def rotate_bottom(self):
-        w, y, r, o, g, b = self.data
-        self.data = [
-            w,
-            [y[2], y[5], y[8], y[1], y[4], y[7], y[0], y[3], y[6]],
-            [r[0], r[1], r[2], r[3], r[4], r[5], b[6], b[7], b[8]],
-            [o[0], o[1], o[2], o[3], o[4], o[5], g[6], g[7], g[8]],
-            [g[0], g[1], g[2], g[3], g[4], g[5], r[6], r[7], r[8]],
-            [b[0], b[1], b[2], b[3], b[4], b[5], o[6], o[7], o[8]]]
-        self._hash = None
+        self._apply_map(__class__.__DMAP__)
 
+    __LMAP__ = np.array([
+        18,1,2,21,4,5,24,7,8,
+        35,10,11,32,13,14,29,16,17,
+        9,19,20,12,22,23,15,25,26,
+        27,28,6,30,31,3,33,34,0,
+        38,41,44,37,40,43,36,39,42,
+        45,46,47,48,49,50,51,52,53])
     def rotate_left(self):
-        w, y, r, o, g, b = self.data
-        self.data = [
-            [r[0], w[1], w[2], r[3], w[4], w[5], r[6], w[7], w[8]],
-            [o[8], y[1], y[2], o[5], y[4], y[5], o[2], y[7], y[8]],
-            [y[0], r[1], r[2], y[3], r[4], r[5], y[6], r[7], r[8]],
-            [o[0], o[1], w[6], o[3], o[4], w[3], o[6], o[7], w[0]],
-            [g[2], g[5], g[8], g[1], g[4], g[7], g[0], g[3], g[6]],
-            b]
-        self._hash = None
+        self._apply_map(__class__.__LMAP__)
 
+    __RMAP__ = np.array([
+        0,1,33,3,4,30,6,7,27,
+        9,10,20,12,13,23,15,16,26,
+        18,19,2,21,22,5,24,25,8,
+        17,28,29,14,31,32,11,34,35,
+        36,37,38,39,40,41,42,43,44,
+        47,50,53,46,49,52,45,48,51])
     def rotate_right(self):
-        w, y, r, o, g, b = self.data
-        self.data = [
-            [w[0], w[1], o[6], w[3], w[4], o[3], w[6], w[7], o[0]],
-            [y[0], y[1], r[2], y[3], y[4], r[5], y[6], y[7], r[8]],
-            [r[0], r[1], w[2], r[3], r[4], w[5], r[6], r[7], w[8]],
-            [y[8], o[1], o[2], y[5], o[4], o[5], y[2], o[7], o[8]],
-            g,
-            [b[2], b[5], b[8], b[1], b[4], b[7], b[0], b[3], b[6]]]
+        self._apply_map(__class__.__RMAP__)
+
+    def face(self, n, layer=0):
+        return self._data[n,:,layer]
+
+    def _apply_map(self, imap):
+        self._data = self._data[imap,:]
         self._hash = None
 
     def validate(self):
-        from collections import defaultdict
-        from func import flatten
-        _map = defaultdict(lambda: 0)
-        for g in flatten(self.data):
-            _map[g] += 1
-        return max(_map.values()) == 9
+        colors, counts = np.unique(self._data[...,0], return_counts=True)
+        result = np.all(colors==np.arange(6)) and np.all(counts==9)
+        return result
+
+    def print(self):
+        print(self.to_data())

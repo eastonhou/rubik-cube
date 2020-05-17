@@ -49,7 +49,7 @@ class Shader:
 
     def apply_cube(self, cube):
         for iface in range(6):
-            self.program['a_texcoord'][iface*36:(iface+1)*36] = np.reshape(self._apply_face(cube.data[iface]), (-1,2))
+            self.program['a_texcoord'][iface*36:(iface+1)*36] = np.reshape(self._apply_face(cube, iface), (-1,2))
 
     def rotate(self, angle, direction):
         self.rotation = glm.rotate(self.rotation, angle, *direction)
@@ -58,13 +58,13 @@ class Shader:
         self.program.draw(gl.GL_QUADS, self.indices)
         self.program['u_model'] = self.rotation
 
-    def _apply_face(self, face):
-        offset_map = {'w': 0, 'y': 1/6, 'r': 1/3, 'o': 1/2, 'g': 2/3, 'b': 5/6}
+    def _apply_face(self, cube, iface):
+        layer0 = cube.face(iface, 0)
+        layer1 = cube.face(iface, 1)
         coords = np.zeros((9,4,2), dtype=np.float32)
         for i in range(9):
-            sc = face[i]
-            x0 = offset_map[sc[0]]
-            igrid = int(sc[1]) if len(sc)>1 else 4
+            x0 = layer0[i]/6
+            igrid = layer1[i]
             r, c = igrid//3, igrid%3
             y, x = r/3, c/18+x0
             coords[i,0] = (x,y)
@@ -96,14 +96,6 @@ class Shader:
         data[5] = -data[4].copy()
         data[5][...,1] = data[4][...,1]
         return data
-    '''
-    def _make_cube_indices(self):
-        indices = np.zeros(shape=(6,9,4), dtype=np.uint32)
-        indices[0] = [(1,0,4,5), (2,1,5,6), (3,2,6,7), (5,4,8,9), (6,5,9,10), (7,6,10,11), (9,8,12,13), (10,9,13,14), (11,10,14,15)]
-        for i in range(1, 6):
-            indices[i] = indices[0]+16*i
-        return indices
-    '''
 
 class Window:
     def __init__(self):
@@ -111,7 +103,7 @@ class Window:
         config.samples = 16
         self.window = app.Window(height=800, width=1280, config=config)
         self.shader = Shader()
-        self.cube = Cube(debug=True)
+        self.cube = Cube()
         self.shader.apply_cube(self.cube)
         @self.window.event
         def on_init():

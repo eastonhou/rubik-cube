@@ -45,7 +45,7 @@
             "type": "python",
             "request": "launch",
             "justMyCode": false,
-            "program": "${workspaceFolder}/func.py",
+            "program": "${workspaceFolder}/solve_best2.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "env": {

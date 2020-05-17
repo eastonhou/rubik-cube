@@ -70,11 +70,11 @@ def _search(model, cube, level, maxdepth):
             break
         seqs, cubes = zip(*records)
         levels = model.predict(cubes, level)
-        timer.check('forward')
         idx = levels.argmax()
         if levels[idx] > level:
             result = seqs[idx]
             break
+        timer.check('forward')
     timer.print()
     producer.cancel()
     producer.print_summary()
@@ -87,12 +87,12 @@ def search(model, cube, level):
             return _sequence
 
 if __name__ == '__main__':
-    cube = Cube([
-        list('booywrgob'),
-        list('gwyyybrby'),
-        list('owwwrbrgo'),
-        list('ygogorrob'),
-        list('wowggbyrw'),
-        list('rwbybygrg')
+    cube = Cube.from_data([
+        'booywrgob',
+        'gwyyybrby',
+        'owwwrbrgo',
+        'ygogorrob',
+        'wowggbyrw',
+        'rwbybygrg'
     ])
     func.solve(cube, search)

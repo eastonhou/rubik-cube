@@ -7,8 +7,7 @@ import func
 class Model(nn.Module):
     def __init__(self, embedding_dim=80):
         super(__class__, self).__init__()
-        self.gridmap = self._create_gridmap()
-        self.embeddings = nn.Embedding(len(self.gridmap), embedding_dim)
+        self.embeddings = nn.Embedding(6, embedding_dim)
         self.projection = nn.Sequential(
             nn.Linear(embedding_dim*54, embedding_dim*27),
             nn.BatchNorm1d(embedding_dim*27),
@@ -25,8 +24,8 @@ class Model(nn.Module):
             print(f'state3 {len(self.state3)} loaded.')
 
     def forward(self, cubes):
-        inputs = [[self.gridmap[g[0]] for g in func.flatten(x.data)] for x in cubes]
-        inputs = self.tensor(inputs)
+        inputs = np.array([x.numpy() for x in cubes])
+        inputs = self.tensor(inputs).long()
         x = self.embeddings(inputs)
         x = x.view(x.shape[0], -1)
         output = self.projection(x)
@@ -57,12 +56,3 @@ class Model(nn.Module):
     def tensor(self, values):
         device = next(self.parameters()).device
         return torch.tensor(values, device=device)
-
-    def _create_gridmap(self):
-        cube = Cube()
-        gridmap = {}
-        for face in cube.data:
-            for grid in face:
-                if grid[0] not in gridmap:
-                    gridmap[grid[0]] = len(gridmap)
-        return gridmap
