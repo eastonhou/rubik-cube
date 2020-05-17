@@ -102,12 +102,13 @@ def solve(cube, search_method):
         while True:
             level = model.predict([cube], level, 8)[0]
             print(f'current level: {level}')
+            timer = Timer()
             if level == 4:
                 break
             _sequence = search_method(model, cube, level)
             sequence += _sequence
             cube.apply_operations(_sequence)
-            print(f'level {level} solved {_sequence}.')
+            print(f'[{timer.check():>.2F}] level {level} solved {_sequence}.')
     return sequence
 
 class Timer:

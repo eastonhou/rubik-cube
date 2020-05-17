@@ -35,6 +35,7 @@ class Producer(DataProducer):
         self.depth = depth
         self.cube = cube
         self.cache = defaultdict(lambda: -1)
+        self.timer = func.Timer()
         self.start()
 
     def _iterate(self, cube, sequence):
@@ -56,13 +57,16 @@ class Producer(DataProducer):
         self.stop_flag = True
 
     def print_summary(self):
-        print(f'{len(self.cache)}:{sum(self.cache.values())} level={self.level} depth={self.depth}')
+        print(
+            f'[{self.timer.check():>.2F}]'
+            f' {len(self.cache)}:{sum(self.cache.values())}'
+            f' level={self.level} depth={self.depth}')
 
 def _search(model, cube, level, maxdepth):
     producer = Producer(cube, level, maxdepth)
     result = None
     while True:
-        records = producer.get(256)
+        records = producer.get(512)
         if not records:
             break
         seqs, cubes = zip(*records)

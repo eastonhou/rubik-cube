@@ -44,7 +44,7 @@ class Cube:
         return self._hash
 
     def numpy(self):
-        return np.reshape(self._data[...,0], -1)
+        return self._data[...,0]
 
     def reset(self):
         self._data = __class__.TEMPLATE
