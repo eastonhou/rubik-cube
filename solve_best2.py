@@ -62,16 +62,20 @@ class Producer(DataProducer):
 def _search(model, cube, level, maxdepth):
     producer = Producer(cube, level, maxdepth)
     result = None
+    timer = func.Timer()
     while True:
         records = producer.get(256)
+        timer.check('get')
         if not records:
             break
         seqs, cubes = zip(*records)
         levels = model.predict(cubes, level)
+        timer.check('forward')
         idx = levels.argmax()
         if levels[idx] > level:
             result = seqs[idx]
             break
+    timer.print()
     producer.cancel()
     producer.print_summary()
     return result
