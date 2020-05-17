@@ -63,9 +63,12 @@ class Trainer:
     def generate_samples(self, size):
         cubes, labels = [], []
         for _ in range(size):
-            label = np.random.randint(4)
-            labels.append(label)
+            if np.random.ranf() < 0.998:
+                label = np.random.randint(4)
+            else:
+                label = 4
             cube = func.make_cube(label)
+            labels.append(label)
             cubes.append(cube)
         return cubes, labels
 

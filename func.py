@@ -26,6 +26,8 @@ def load(path):
 
 STATE3 = load('state3.pkl')
 def make_cube(label):
+    if label == 4:
+        return Cube()
     def _sample(operations, sizes=[1,3,5,7,8,9,10,11,12,13,14,15]):
         size = np.random.choice(sizes)
         return np.random.choice(operations, size).tolist()

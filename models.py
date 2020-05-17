@@ -18,10 +18,7 @@ class Model(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(embedding_dim*6, embedding_dim*3),
             nn.ReLU(inplace=True),
-            nn.Linear(embedding_dim*3, 4))
-        with open('state3.pkl', 'rb') as file:
-            self.state3 = pickle.load(file)
-            print(f'state3 {len(self.state3)} loaded.')
+            nn.Linear(embedding_dim*3, 5))
 
     def forward(self, cubes):
         inputs = np.array([x.numpy() for x in cubes])
@@ -32,10 +29,6 @@ class Model(nn.Module):
         return output
 
     def predict(self, cubes, level, samples=8):
-        if level == 2:
-            return np.array([3 if x.hash in self.state3 else 2 for x in cubes])
-        if level == 3:
-            return np.array([4 if x.hash == Cube.FINALE else 3 for x in cubes])
         with torch.no_grad():
             levels = self.forward(cubes).argmax(-1).cpu().numpy()
         if levels.max() <= level:
