@@ -1,5 +1,23 @@
 import func
+import numpy as np
 from definitions import Cube
+
+def search(model, cube, level):
+    maxdepths = [7, 13, 17, 19]
+    maxdepth = maxdepths[level]
+    for _ in range(10000000):
+        ops, cubes = [], []
+        for _ in range(256):
+            _ops = func.random_operations(level, np.random.randint(1, maxdepth+1))
+            _cube = cube.copy()
+            func.apply_operations(_cube, _ops)
+            ops.append(_ops)
+            cubes.append(_cube)
+        levels = model.predict(cubes, level)
+        if levels.max() > level:
+            x = levels.argmax()
+            return ops[x].tolist()
+    return None
 
 if __name__ == '__main__':
     cube = Cube([
@@ -10,13 +28,5 @@ if __name__ == '__main__':
         list('wowggbyrw'),
         list('rwbybygrg')
     ])
-    func.apply_operations(cube, ['B','R','U','F','F','R'])
-    func.apply_operations(cube, ['D','L2','D','R2','L2','B','F','L2','B','R2','U','B'])
-    func.apply_operations(cube, ['U','D','D','B2','R2','U','B2','L2','U','D','B2','U','B2','U','R2'])
-    func.apply_operations(cube, ['L2', 'U2', 'L2', 'B2', 'R2', 'D2', 'F2', 'R2'])
-    if cube.hash == Cube.FINALE:
-        print('already done')
-    else:
-        assert cube.validate()
-        sequence = func.solve(cube, [0, 3])
-        print(sequence)
+    sequence = func.solve(cube, search)
+    print(sequence)

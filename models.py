@@ -37,7 +37,8 @@ class Model(nn.Module):
             return np.array([3 if x.hash in self.state3 else 2 for x in cubes])
         if level == 3:
             return np.array([4 if x.hash == Cube.FINALE else 3 for x in cubes])
-        levels = self.forward(cubes).argmax(-1).cpu().numpy()
+        with torch.no_grad():
+            levels = self.forward(cubes).argmax(-1).cpu().numpy()
         if levels.max() <= level:
             return levels
         operations = [
@@ -48,7 +49,8 @@ class Model(nn.Module):
             for _cube, _operations in zip(_sample_cubes, _sample_operations):
                 func.apply_operations(_cube, _operations)
         flatten_cubes = func.flatten(sample_cubes)
-        levels = self.forward(flatten_cubes).argmax(-1).view(-1, samples).cpu().numpy()
+        with torch.no_grad():
+            levels = self.forward(flatten_cubes).argmax(-1).view(-1, samples).cpu().numpy()
         least_levels = levels.min(axis=-1)
         return least_levels
 
