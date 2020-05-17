@@ -3,8 +3,14 @@ import numpy as np
 def _hash(value):
     return hash(tuple(value))
 
+def _template():
+    layer0 = np.tile(np.arange(6, dtype=np.uint8), (9,1)).transpose()
+    layer1 = np.tile(np.arange(9, dtype=np.uint8), (6,1))
+    return np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
+
 class Cube:
     FINALE = _hash(np.reshape(np.tile(np.arange(6), (9,1)).transpose(), -1))
+    TEMPLATE = _template()
     @staticmethod
     def from_data(data):
         cmap = {k:v for v,k in enumerate('wyrogb')}
@@ -41,9 +47,7 @@ class Cube:
         return np.reshape(self._data[...,0], -1)
 
     def reset(self):
-        layer0 = np.tile(np.arange(6, dtype=np.uint8), (9,1)).transpose()
-        layer1 = np.tile(np.arange(9, dtype=np.uint8), (6,1))
-        self._data = np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
+        self._data = __class__.TEMPLATE
         self._hash = None
 
     __FMAP__ = np.array([
@@ -107,24 +111,54 @@ class Cube:
         self._apply_map(__class__.__RMAP__)
 
     def face(self, n, layer=0):
-        return self._data[n,:,layer]
+        return self._data[...,layer].reshape(6, 9)[n]
 
-    __UMAP2__ = __UMAP__[__UMAP__]
-    __DMAP2__ = __DMAP__[__DMAP__]
-    __FMAP2__ = __FMAP__[__FMAP__]
-    __BMAP2__ = __BMAP__[__BMAP__]
-    __LMAP2__ = __LMAP__[__LMAP__]
-    __RMAP2__ = __RMAP__[__RMAP__]
     __OPERATIONS__ = {
         'U': __UMAP__, 'D': __DMAP__,
         'F': __FMAP__, 'B': __BMAP__,
         'L': __LMAP__, 'R': __RMAP__,
-        'U2': __UMAP2__, 'D2': __DMAP2__,
-        'F2': __FMAP2__, 'B2': __BMAP2__,
-        'L2': __LMAP2__, 'R2': __RMAP2__,
     }
     def apply_operation(self, operation):
-        self._apply_map(__class__.__OPERATIONS__[operation])
+        opmap = __class__._require_map(operation)
+        self._apply_map(opmap)
+
+    def apply_operations(self, operations):
+        stack = []
+        for op in operations:
+            if stack and op[0] == stack[-1][0]:
+                last_op = stack[-1]
+                last_counter = 1 if len(last_op)==1 else int(last_op[1])
+                counter = 1 if len(op)==1 else int(op[1])
+                op, counter = op[0], (counter+last_counter)%4
+                if 0 == counter:
+                    stack.pop(-1)
+                else:
+                    stack[-1] = f'{op}{counter}'
+            else:
+                stack.append(op)
+        compress_stack = []
+        for i,op in enumerate(stack):
+            if i%3 == 0:
+                compress_stack.append(op)
+            else:
+                compress_stack[-1] += f',{op}'
+        for op in compress_stack:
+            self.apply_operation(op)
+
+    @staticmethod
+    def _require_map(operation):
+        if operation not in __class__.__OPERATIONS__:
+            opmap = np.arange(54, dtype=np.uint8)
+            if ',' not in operation:
+                times = int(operation[1])
+                unit = __class__.__OPERATIONS__[operation[0]]
+                for _ in range(times):
+                    opmap = opmap[unit]
+            else:
+                for op in operation.split(','):
+                    opmap = opmap[__class__._require_map(op)]
+            __class__.__OPERATIONS__[operation] = opmap
+        return __class__.__OPERATIONS__[operation]
 
     def _apply_map(self, imap):
         self._data = self._data[imap,:]

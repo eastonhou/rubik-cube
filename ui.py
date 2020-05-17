@@ -49,7 +49,7 @@ class Shader:
 
     def apply_cube(self, cube):
         for iface in range(6):
-            self.program['a_texcoord'][iface*36:(iface+1)*36] = np.reshape(self._apply_face(cube, iface), (-1,2))
+            self.program['a_texcoord'][iface*36:(iface+1)*36] = self._apply_face(cube, iface).reshape(-1, 2)
 
     def rotate(self, angle, direction):
         self.rotation = glm.rotate(self.rotation, angle, *direction)
@@ -128,18 +128,12 @@ class Window:
 
         @self.window.event
         def on_key_press(key, modifiers):
-            operations = {
-                ord('U'): self.cube.rotate_top,
-                ord('D'): self.cube.rotate_bottom,
-                ord('F'): self.cube.rotate_front,
-                ord('B'): self.cube.rotate_back,
-                ord('L'): self.cube.rotate_left,
-                ord('R'): self.cube.rotate_right
-            }
+            key = chr(key)
+            operations = 'UDFBLR'
             if key in operations:
                 times = 3 if (modifiers&1) else 1
                 for _ in range(times):
-                    operations[key]()
+                    self.cube.apply_operation(key)
                 self.shader.apply_cube(self.cube)
 
         @self.window.event

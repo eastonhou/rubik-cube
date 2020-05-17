@@ -1,4 +1,4 @@
-import torch, os, pickle, time
+import torch, os, pickle, time, random
 import numpy as np
 from definitions import Cube
 from collections import defaultdict
@@ -29,11 +29,11 @@ def make_cube(label):
     if label == 4:
         return Cube()
     def _sample(operations, sizes=[1,3,5,7,8,9,10,11,12,13,14,15]):
-        size = np.random.choice(sizes)
-        return np.random.choice(operations, size).tolist()
+        size = random.choice(sizes)
+        return random.choices(operations, k=size)
     def _c3_sequence():
         length = np.random.randint(0, 16)
-        operations = np.random.choice(get_operations(3), length).tolist()
+        operations = random.choices(get_operations(3), k=length)
         return operations
     def _c2_sequence():
         operations = _c3_sequence() if np.random.ranf() < 0.99 else []
@@ -52,16 +52,14 @@ def make_cube(label):
         seq = operations[label]()
         np.random.shuffle(seq)
         cube = Cube()
-        apply_operations(cube, seq)
+        cube.apply_operations(seq)
+        if cube.hash == Cube.FINALE:
+            continue
         if label < 3 and cube.hash in STATE3:
             continue
         else:
             break
     return cube
-
-def apply_operations(cube, operations):
-    for op in operations:
-        cube.apply_operation(op)
 
 def save_model(model):
     ckpt = {
@@ -108,7 +106,7 @@ def solve(cube, search_method):
                 break
             _sequence = search_method(model, cube, level)
             sequence += _sequence
-            apply_operations(cube, _sequence)
+            cube.apply_operations(_sequence)
             print(f'level {level} solved {_sequence}.')
     return sequence
 

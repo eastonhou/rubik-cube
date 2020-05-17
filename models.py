@@ -39,7 +39,7 @@ class Model(nn.Module):
         sample_cubes = [[x.copy() for _ in range(samples)] for x in cubes]
         for _sample_cubes, _sample_operations in zip(sample_cubes, operations):
             for _cube, _operations in zip(_sample_cubes, _sample_operations):
-                func.apply_operations(_cube, _operations)
+                _cube.apply_operations(_operations)
         flatten_cubes = func.flatten(sample_cubes)
         with torch.no_grad():
             levels = self.forward(flatten_cubes).argmax(-1).view(-1, samples).cpu().numpy()
