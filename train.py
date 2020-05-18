@@ -54,7 +54,7 @@ class Trainer:
                 f' C/D={autodecay.counter}/{autodecay.decay_counter}'\
                 f' lr={autodecay.learning_rate}'
             if autodecay.update_accuracy(accuracy, loss):
-                if accuracy >= 0.9999:
+                if accuracy >= 0.9993:
                     func.save_model(self.model)
                     print(f'SAVE MODEL: {admsg}')
                 else:
