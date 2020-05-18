@@ -78,6 +78,10 @@ def load_model():
         model.load_state_dict(ckpt['model'])
     return model.to(0)
 
+def has_checkpoint():
+    path = 'checkpoints/model.pt'
+    return os.path.isfile(path)
+
 def get_operations(level):
     operations = {
         0: ['U', 'D', 'L', 'R', 'F', 'B'],

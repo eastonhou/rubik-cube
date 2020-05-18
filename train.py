@@ -27,8 +27,11 @@ class Producer(DataProducer):
 
     def get(self, size):
         cubes, labels0 = zip(*super(__class__, self).get(size, force_size=True))
-        labels = self.model.predict_multiple_pass(cubes)
-        self.label_correction += (labels != labels0).sum()
+        if func.has_checkpoint():
+            labels = self.model.predict_multiple_pass(cubes)
+            self.label_correction += (labels != labels0).sum()
+        else:
+            labels = labels0
         return cubes, labels
 
 class Trainer:
