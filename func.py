@@ -83,11 +83,13 @@ def get_operations(level):
         0: ['U', 'D', 'L', 'R', 'F', 'B'],
         1: ['U', 'D', 'L2', 'R2', 'F', 'B'],
         2: ['U', 'D', 'L2', 'R2', 'F2', 'B2'],
-        3: ['U2', 'D2', 'L2', 'R2', 'F2', 'B2'],
+        3: ['U2', 'D2', 'L2', 'R2', 'F2', 'B2']
     }
     return operations[level]
 
 def random_operations(level, size):
+    if level == 4:
+        return []
     operations = get_operations(level)
     return np.random.choice(operations, size)
 

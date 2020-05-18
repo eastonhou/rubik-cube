@@ -1,4 +1,4 @@
-import torch
+import torch, tqdm
 import numpy as np
 import func
 from optimization import AutoDecay
@@ -7,6 +7,7 @@ from asynchronous import DataProducer
 class Producer(DataProducer):
     def __init__(self):
         super(__class__, self).__init__(16, 65536)
+        self.reset()
         self.start()
 
     def _produce(self):
@@ -18,7 +19,17 @@ class Producer(DataProducer):
         self.put([(cube, label)])
 
     def print_summary(self):
-        print(f'{len(self.cache)}:{sum(self.cache.values())} level={self.level} depth={self.depth}')
+        print(f'LABEL CORRECTION: {self.label_correction}')
+
+    def reset(self):
+        self.model = func.load_model().eval()
+        self.label_correction = 0
+
+    def get(self, size):
+        cubes, labels0 = zip(*super(__class__, self).get(size, force_size=True))
+        labels = self.model.predict_multiple_pass(cubes)
+        self.label_correction += (labels != labels0).sum()
+        return cubes, labels
 
 class Trainer:
     def __init__(self):
@@ -32,6 +43,7 @@ class Trainer:
         autodecay = AutoDecay(optimizer, max_lr=2E-3, min_lr=2E-5)
         autodecay.update_accuracy(accuracy, 1000)
         while True:
+            self.producer.reset()
             loss = self.train_epoch(optimizer, n, batch_size)
             accuracy = self.evaluate_epoch(m, batch_size)
             admsg = f'ACCURACY={accuracy:>.4f}/{autodecay.last_accuracy:>.4F}'\
@@ -46,14 +58,15 @@ class Trainer:
             if autodecay.should_stop():
                 self.model = func.load_model()
                 autodecay.reset()
+            self.producer.print_summary()
 
     def train_epoch(self, optimizer, n, batch_size):
         self.model.train()
         tloss = 0
         total = 0
         timer = func.Timer()
-        for _ in range(n):
-            cubes, labels = zip(*self.producer.get(batch_size))
+        for _ in tqdm.tqdm(range(n)):
+            cubes, labels = self.producer.get(batch_size)
             timer.check('generate-sample')
             logits = self.model(cubes)
             timer.check('forward')
@@ -77,8 +90,8 @@ class Trainer:
         with torch.no_grad():
             correct = 0
             total = 0
-            for _ in range(n):
-                cubes, labels = zip(*self.producer.get(batch_size, True))
+            for _ in tqdm.tqdm(range(n)):
+                cubes, labels = self.producer.get(batch_size)
                 logits = self.model(cubes)
                 labels = self.model.tensor(labels)
                 predicts = logits.argmax(-1)
