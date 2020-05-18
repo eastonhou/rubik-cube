@@ -28,7 +28,7 @@ def verify_state3():
     assert cache[cube.hash] == 0
     for _ in range(16):
         seq = func.random_operations(3, np.random.randint(0, 21))
-        func.apply_operations(cube, seq)
+        cube.apply_operations(seq)
         print(len(seq), cache[cube.hash])
 
 if __name__ == '__main__':
