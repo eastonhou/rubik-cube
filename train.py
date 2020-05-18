@@ -11,7 +11,7 @@ class Producer(DataProducer):
         self.start()
 
     def _produce(self):
-        if np.random.ranf() < 0.998:
+        if np.random.ranf() < 0.9999:
             label = np.random.randint(4)
         else:
             label = 4
