@@ -33,11 +33,14 @@ class Model(nn.Module):
             levels = self.forward(cubes).argmax(-1).cpu().numpy()
         if levels.max() <= level:
             return levels
-        if level == 3:
-            levels = np.array([4 if x.hash==Cube.FINALE else 3 for x in cubes])
-            if levels.max() < 4:
+        if levels.max()==4:
+            mask = levels==4
+            mask *= np.array([x.hash!=Cube.FINALE for x in cubes])
+            if mask.sum() > 0:
+                levels[mask] = 3
                 print(f'WARNING: model predicts a state3 cube as identity.')
-            return levels
+            if levels.max() <= level:
+                return levels
         mask = levels>level
         sample_cubes = self._sample_cubes([x for x,m in zip(cubes, mask) if m], levels[mask], 15)
         _levels = self._predict_majority(sample_cubes, 30)
