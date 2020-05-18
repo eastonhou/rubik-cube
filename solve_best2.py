@@ -94,4 +94,8 @@ if __name__ == '__main__':
         'wowggbyrw',
         'rwbybygrg'
     ])
-    func.solve(cube, search)
+    seq = func.solve(cube, search)
+    cube.apply_operations(seq)
+    cube.print()
+    assert cube.hash == Cube.FINALE
+
