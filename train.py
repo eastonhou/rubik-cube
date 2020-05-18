@@ -39,14 +39,14 @@ class Trainer:
     def run(self, n=2000, m=1000, batch_size=256):
         optimizer = torch.optim.Adam(self.model.parameters())
         accuracy = self.evaluate_epoch(m, batch_size)
-        print(f'INITIAL ACCURACY={accuracy:>.4f}')
+        print(f'INITIAL ACCURACY={accuracy:>.6f}')
         autodecay = AutoDecay(optimizer, max_lr=2E-3, min_lr=2E-5)
         autodecay.update_accuracy(accuracy, 1000)
         while True:
             self.producer.reset()
             loss = self.train_epoch(optimizer, n, batch_size)
             accuracy = self.evaluate_epoch(m, batch_size)
-            admsg = f'ACCURACY={accuracy:>.4f}/{autodecay.last_accuracy:>.4F}'\
+            admsg = f'ACCURACY={accuracy:>.6f}/{autodecay.last_accuracy:>.6F}'\
                 f' LOSS={loss:>.4F}'\
                 f' C/D={autodecay.counter}/{autodecay.decay_counter}'\
                 f' lr={autodecay.learning_rate}'
