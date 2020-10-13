@@ -50,7 +50,6 @@ class Model(nn.Module):
         for i,cube in enumerate(cubes):
             if levels[i] == 3 and cube.hash not in self.state3:
                 levels[i] = 2
-                print(f'WARNING: model predicts a state2 cube as state3.')
         return levels
 
     def predict_multiple_pass(self, cubes):
