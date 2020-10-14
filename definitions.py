@@ -18,7 +18,7 @@ class Cube:
         layer1 = np.tile(np.full(9, 4, dtype=np.uint8), (6,1))
         cube = Cube()
         cube._data = np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
-        cube.validate()
+        assert cube.validate()
         return cube
 
     def to_data(self):
