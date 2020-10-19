@@ -29,6 +29,12 @@ class Model(nn.Module):
         return output
 
     def predict(self, cubes, level, samples=8):
+        if level == 2:
+            def _level(cube):
+                if cube.hash in self.state3: return 3
+                elif cube.hash == Cube.FINALE: return 4
+                else: return 2
+            return torch.Tensor([_level(x) for x in cubes])
         with torch.no_grad():
             levels = self.forward(cubes).argmax(-1).cpu().numpy()
         if levels.max() <= level:
@@ -48,7 +54,9 @@ class Model(nn.Module):
         if _levels.max() <= level:
             print(f'WARNING: model prediction is incorrect in first pass.')
         for i,cube in enumerate(cubes):
-            if levels[i] == 3 and cube.hash not in self.state3:
+            if cube.hash in self.state3:
+                levels[i] = 3
+            elif levels[i] == 3:
                 levels[i] = 2
         return levels
 
