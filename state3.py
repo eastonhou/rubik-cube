@@ -50,7 +50,7 @@ def dump_state3_code():
     state3 = func.load('state3.pkl')
     cache = {Cube().hash: func.compute_relative_code(Cube(), Cube())}
     collect_code(state3, Cube(), cache)
-    func.dump('state3-code.pkl', cache)
+    func.dump('state3-codes.pkl', cache)
     print(f'{len(cache)} records dumped')
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ class Model(nn.Module):
             nn.Linear(embedding_dim*6, embedding_dim*3),
             nn.ReLU(inplace=True),
             nn.Linear(embedding_dim*3, 5))
-        self.state3 = func.load('state3.pkl')
+        self.state3_steps = func.load('state3-steps.pkl')
 
     def forward(self, cubes):
         inputs = self._make_inputs(cubes)
@@ -31,10 +31,10 @@ class Model(nn.Module):
     def predict(self, cubes, level, samples=8):
         if level == 2:
             def _level(cube):
-                if cube.hash in self.state3: return 3
+                if cube.hash in self.state3_steps: return 3
                 elif cube.hash == Cube.FINALE: return 4
                 else: return 2
-            return torch.Tensor([_level(x) for x in cubes])
+            return np.array([_level(x) for x in cubes])
         with torch.no_grad():
             levels = self.forward(cubes).argmax(-1).cpu().numpy()
         if levels.max() <= level:
@@ -54,8 +54,8 @@ class Model(nn.Module):
         if _levels.max() <= level:
             print(f'WARNING: model prediction is incorrect in first pass.')
         for i,cube in enumerate(cubes):
-            if cube.hash in self.state3:
-                levels[i] = 3
+            if cube.hash in self.state3_steps:
+                levels[i] = 3 if cube.hash != Cube.FINALE else 4
             elif levels[i] == 3:
                 levels[i] = 2
         return levels

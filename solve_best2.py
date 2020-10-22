@@ -1,4 +1,5 @@
 import func
+import torch
 import numpy as np
 from models import Model
 from definitions import Cube
@@ -67,8 +68,7 @@ def _search(model, cube, level, maxdepth):
     result = None
     while True:
         records = producer.get(512)
-        if not records:
-            break
+        if not records: break
         seqs, cubes = zip(*records)
         levels = model.predict(cubes, level)
         idx = levels.argmax()
@@ -79,7 +79,61 @@ def _search(model, cube, level, maxdepth):
     producer.print_summary()
     return result
 
+def _match_codes(identity, state3_codes, codes, cube):
+    _code = func.compute_relative_code(cube, identity)
+    _codes = state3_codes[:,_code]
+    _codes2 = torch.cat((_codes, codes), dim=0)
+    values, counts = _codes2.unique(return_counts=True, dim=0)
+    return values[counts>1].cpu().numpy()
+    
+def _search_by_code_recursive(identity, state3_codes, codes, code_steps, cube, depth, minsteps):
+    if depth >= 6:
+        return None
+    assert cube.hash != identity.hash
+    _codes = _match_codes(identity, state3_codes, codes, cube)
+    steps = [code_steps[tuple(x)] for x in _codes]
+    if steps:
+        _minidx = np.argmin(steps)
+        _minsteps = steps[_minidx]
+        minsteps = min(_minsteps, minsteps)
+        if 0 == minsteps:
+            return []
+    for op in func.get_operations(2):
+        _cube = cube.copy()
+        _cube.apply_operation(op)
+        result = _search_by_code_recursive(identity, state3_codes, codes, code_steps, _cube, depth+1, minsteps)
+        if result is not None:
+            return [op] + result
+    return None
+
+def _search_by_code(cube, minsteps=100):
+    identity = Cube()
+    #cube_code = func.compute_relative_code(cube, Cube())
+    state3_codes = func.load('state3-codes.pkl')
+    state3_codes = torch.tensor(tuple(state3_codes.values()), dtype=torch.uint8, device=0)
+    code_steps = func.load('code-steps.pkl')
+    codes = list(code_steps.keys())
+    codes = torch.tensor(codes, dtype=torch.uint8, device=0)
+    return _search_by_code_recursive(identity, state3_codes, codes, code_steps, cube, 0, 100)
+
+def _search_by_state(cube):
+    operations = []
+    state3_steps = func.load('state3-steps.pkl')
+    while cube.hash != Cube.FINALE:
+        for op in func.get_operations(3):
+            _cube = cube.copy()
+            _cube.apply_operation(op)
+            if state3_steps[_cube.hash] < state3_steps[cube.hash]:
+                operations.append(op)
+                cube = _cube
+                break
+    return operations
+
 def search(model, cube, level):
+    if level == 2:
+        return _search_by_code(cube)
+    elif level == 3:
+        return _search_by_state(cube)
     for maxdepth in range(1, 17):
         _sequence = _search(model, cube, level, maxdepth)
         if _sequence is not None:
@@ -87,15 +141,18 @@ def search(model, cube, level):
 
 if __name__ == '__main__':
     cube = Cube.from_data([
-        'booywrgob',
-        'gwyyybrby',
-        'owwwrbrgo',
-        'ygogorrob',
-        'wowggbyrw',
-        'rwbybygrg'
+        'ywyywywwy',
+        'wwyyywwyw',
+        'bororogrr',
+        'obororogo',
+        'bbrggbbor',
+        'grggbbbgg'
     ])
+    #cube.apply_operations(['R2', 'D', 'F2', 'U', 'U2', 'R2', 'B2', 'U', 'F2', 'L2', 'U2', 'F2', 'R2', 'D', 'F2'])
+    #cube = Cube()
+    #cube.apply_operations(func.get_operations(2))
     seq = func.solve(cube, search)
+    print(seq)
     cube.apply_operations(seq)
     cube.print()
     assert cube.hash == Cube.FINALE
-
