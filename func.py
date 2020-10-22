@@ -24,7 +24,7 @@ def load(path):
     with open(path, 'rb') as file:
         return pickle.load(file)
 
-STATE3 = load('state3.pkl')
+STATE3 = load('state3-steps.pkl')
 def make_cube(label):
     if label == 4:
         return Cube()
@@ -178,5 +178,5 @@ if __name__ == '__main__':
     cube1 = cube0.copy()
     cube1.apply_operations(['U', 'D', 'L2', 'R2', 'L2', 'F2', 'B2'])
     code = compute_relative_code(cube0, cube1)
-    codes = load('code.pkl')
+    codes = load('code-steps.pkl')
     print(codes[code])

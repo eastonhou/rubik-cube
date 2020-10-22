@@ -79,8 +79,9 @@ def collect(maxdepth):
     producer.print_summary()
     result = {x:y for x,y in cubes.values()}
     assert len(result) == len(cubes)
+    result[func.compute_relative_code(identity, identity)] = 0
     return result
 
 if __name__ == '__main__':
     cubes = collect(8)
-    func.dump('code.pkl', cubes)
+    func.dump('code-steps.pkl', cubes)

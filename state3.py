@@ -17,7 +17,7 @@ def dump_state3():
     cube = Cube()
     cache = {cube.hash: 0}
     collect(cube, cache)
-    func.dump('state3.pkl', cache)
+    func.dump('state3-steps.pkl', cache)
     print(f'{len(cache)} records dumped')
 
 def verify_state3():
