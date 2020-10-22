@@ -61,6 +61,36 @@ def make_cube(label):
             break
     return cube
 
+
+def _face_positions():
+    '''
+    _positions = [
+        (0,29,36), (1,28), (2,27,47), (3,37), (4,), (5,46), (6,18,38), (7,19), (8,20,45),
+        (32,39), (31,), (30,50), (40,), (49,), (21,41), (22,), (23,48),
+        (15,35,42), (16,34), (17,33,53), (12,43), (13,), (14,52), (9,24,44), (10,25), (11,26,51)]
+    '''
+    _positions = [
+        [0,29,36], [1,28], [2,27,47], [3,37], [5,46], [6,18,38], [7,19], [8,20,45],
+        [32,39], [30,50], [21,41], [23,48],
+        [15,35,42], [16,34], [17,33,53], [12,43], [14,52], [9,24,44], [10,25], [11,26,51]
+    ]
+    return _positions
+
+def _component_colors(cube):
+    data = cube.numpy()
+    colors = [sorted(data[x]) for x in _face_positions()]
+    return colors
+
+def compute_relative_code(cube0, cube1):
+    data = cube0.numpy()
+    colors = _component_colors(cube1)
+    codes = []
+    for grid in _face_positions():
+        grid_colors = sorted(data[grid])
+        idx = colors.index(grid_colors)
+        codes.append(idx)
+    return codes
+
 def save_model(model):
     ckpt = {
         'model': model.state_dict()
@@ -141,3 +171,12 @@ class Timer:
                 print(f'{k}: {v:>.2F}')
             else:
                 print(f'{k}: {v:>.2F}/{c}={v/c}')
+
+if __name__ == '__main__':
+    cube0 = Cube()
+    cube0.apply_operations(['L2', 'U2', 'D', 'R', 'B', 'R2', 'F'])
+    cube1 = cube0.copy()
+    cube1.apply_operations(['R2', 'U', 'L', 'D2', 'F', 'R', 'B2'])
+    codes = compute_relative_code(cube0, cube1)
+    codes1 = compute_relative_code(cube1, cube0)
+    print(codes, codes1)
