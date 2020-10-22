@@ -87,7 +87,7 @@ def _match_codes(identity, state3_codes, codes, cube):
     return values[counts>1].cpu().numpy()
     
 def _search_by_code_recursive(identity, state3_codes, codes, code_steps, cube, depth, minsteps):
-    if depth >= 6:
+    if depth >= 8:
         return None
     assert cube.hash != identity.hash
     _codes = _match_codes(identity, state3_codes, codes, cube)
