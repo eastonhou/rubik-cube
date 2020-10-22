@@ -89,7 +89,7 @@ def compute_relative_code(cube0, cube1):
         grid_colors = sorted(data[grid])
         idx = colors.index(grid_colors)
         codes.append(idx)
-    return codes
+    return tuple(codes)
 
 def save_model(model):
     ckpt = {
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     cube0 = Cube()
     cube0.apply_operations(['L2', 'U2', 'D', 'R', 'B', 'R2', 'F'])
     cube1 = cube0.copy()
-    cube1.apply_operations(['R2', 'U', 'L', 'D2', 'F', 'R', 'B2'])
-    codes = compute_relative_code(cube0, cube1)
-    codes1 = compute_relative_code(cube1, cube0)
-    print(codes, codes1)
+    cube1.apply_operations(['U', 'D', 'L2', 'R2', 'L2', 'F2', 'B2'])
+    code = compute_relative_code(cube0, cube1)
+    codes = load('code.pkl')
+    print(codes[code])

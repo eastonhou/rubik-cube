@@ -71,13 +71,13 @@ def collect(maxdepth):
         for seq, cube in records:
             if cube.hash not in cubes:
                 code = func.compute_relative_code(identity, cube)
-                cubes[cube.hash] = np.array(code, dtype=np.uint8), len(seq)
+                cubes[cube.hash] = code, len(seq)
             else:
                 code, distance = cubes[cube.hash]
                 cubes[cube.hash] = code, min(len(seq), distance)
     producer.cancel()
     producer.print_summary()
-    result = {tuple(x):y for x,y in cubes.values()}
+    result = {x:y for x,y in cubes.values()}
     assert len(result) == len(cubes)
     return result
 
