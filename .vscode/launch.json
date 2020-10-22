@@ -41,6 +41,18 @@
             }
         },
         {
+            "name": "train.code",
+            "type": "python",
+            "request": "launch",
+            "justMyCode": false,
+            "program": "${workspaceFolder}/train_code.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "solve",
             "type": "python",
             "request": "launch",

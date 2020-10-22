@@ -112,6 +112,28 @@ def has_checkpoint():
     path = 'checkpoints/model.pt'
     return os.path.isfile(path)
 
+def save_code_model(model):
+    ckpt = {
+        'model': model.state_dict()
+    }
+    path = 'checkpoints/code-model.pt'
+    ensure_folder(path)
+    torch.save(ckpt, path)
+
+def load_code_model():
+    from models import CodeModel
+    model = CodeModel()
+    path = 'checkpoints/code-model.pt'
+    if os.path.isfile(path):
+        ckpt = torch.load(path, map_location=lambda storage, location: storage)
+        model.load_state_dict(ckpt['model'])
+    return model.to(0)
+
+def has_code_checkpoint():
+    path = 'checkpoints/code-model.pt'
+    return os.path.isfile(path)
+
+
 def get_operations(level):
     operations = {
         0: ['U', 'D', 'L', 'R', 'F', 'B'],

@@ -4,7 +4,15 @@ from torch import nn
 from definitions import Cube, _hash
 import func
 
-class Model(nn.Module):
+class ModelBase(nn.Module):
+    def __init__(self):
+        super(__class__, self).__init__()
+
+    def tensor(self, values):
+        device = next(self.parameters()).device
+        return torch.tensor(values, device=device)
+
+class Model(ModelBase):
     def __init__(self, embedding_dim=80):
         super(__class__, self).__init__()
         self.embeddings = nn.Embedding(6, embedding_dim)
@@ -95,12 +103,32 @@ class Model(nn.Module):
             inputs = self.tensor(inputs).long()
         return inputs
 
-    def tensor(self, values):
-        device = next(self.parameters()).device
-        return torch.tensor(values, device=device)
-
     def _hash(self, x):
         if torch.is_tensor(x):
             return _hash(x.cpu().numpy())
         else:
             return x.hash
+    
+class CodeModel(ModelBase):
+    def __init__(self, embedding_dim=80):
+        super(__class__, self).__init__()
+        self.embeddings = nn.Embedding(6, embedding_dim)
+        self.projection = nn.Sequential(
+            nn.Linear(embedding_dim*54, embedding_dim*27),
+            nn.BatchNorm1d(embedding_dim*27),
+            nn.ReLU(inplace=True),
+            nn.Linear(embedding_dim*27, embedding_dim*13),
+            nn.Tanh(),
+            nn.Linear(embedding_dim*13, embedding_dim*6),
+            nn.ReLU(inplace=True),
+            nn.Linear(embedding_dim*6, embedding_dim*3),
+            nn.ReLU(inplace=True),
+            nn.Linear(embedding_dim*3, 2))
+
+    def forward(self, cubes):
+        inputs = np.array([x.numpy() for x in cubes])
+        inputs = self.tensor(inputs).long()
+        x = self.embeddings(inputs)
+        x = x.view(x.shape[0], -1)
+        output = self.projection(x)
+        return output
