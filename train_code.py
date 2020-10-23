@@ -11,19 +11,23 @@ class Producer(DataProducer):
         self.state3_codes = torch.tensor(tuple(state3_codes.values()), dtype=torch.uint8, device=0)
         code_steps = func.load('code-steps.pkl')
         codes = list(code_steps.keys())
+        self.cache = {}
         self.codes = torch.tensor(codes, dtype=torch.uint8, device=0)
         self.reset()
         self.start()
 
     def _make_label(self, cube):
+        if cube.hash in self.cache:
+            return self.cache[cube.hash]
         _code = func.compute_relative_code(cube, Cube())
         _codes = self.state3_codes[:,_code]
         _codes2 = torch.cat((_codes, self.codes), dim=0)
         _, counts = _codes2.unique(return_counts=True, dim=0)
-        return counts.gt(1).sum() > 0
+        self.cache[cube.hash] = result = counts.gt(1).sum() > 0
+        return result
 
     def _produce(self):
-        operations = func.random_operations(2, 38)
+        operations = func.random_operations(2, 36)
         cube = Cube()
         cube.apply_operations(operations)
         label = self._make_label(cube)
@@ -52,7 +56,7 @@ class Trainer:
             print(f'INITIAL ACCURACY={accuracy:>.6f}')
         else:
             accuracy = 0
-        autodecay = AutoDecay(optimizer, max_lr=2E-3, min_lr=2E-5)
+        autodecay = AutoDecay(optimizer, not_learning_counter=10, patience=6, max_lr=2E-3, min_lr=2E-5)
         autodecay.update_accuracy(accuracy, 1000)
         while True:
             self.producer.reset()
