@@ -137,8 +137,8 @@ def has_code_checkpoint():
 def get_operations(level):
     operations = {
         0: ['U', 'D', 'L', 'R', 'F', 'B'],
-        1: ['U', 'D', 'L2', 'R2', 'F', 'B'],
-        2: ['U', 'D', 'L2', 'R2', 'F2', 'B2'],
+        1: ['U', 'U2', 'U3', 'D', 'D2', 'D3', 'L2', 'R2', 'F', 'F2', 'F3', 'B', 'B2', 'B3'],
+        2: ['U', 'U2', 'U3', 'D', 'D2', 'D3', 'L2', 'R2', 'F2', 'B2'],
         3: ['U2', 'D2', 'L2', 'R2', 'F2', 'B2']
     }
     return operations[level]

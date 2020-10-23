@@ -83,5 +83,5 @@ def collect(maxdepth):
     return result
 
 if __name__ == '__main__':
-    cubes = collect(8)
+    cubes = collect(7)
     func.dump('code-steps.pkl', cubes)
