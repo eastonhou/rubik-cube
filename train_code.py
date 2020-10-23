@@ -49,7 +49,7 @@ class Trainer:
         self.model = func.load_code_model()
         self.producer = Producer()
 
-    def run(self, n=50, m=10, batch_size=256):
+    def run(self, n=200, m=40, batch_size=256):
         optimizer = torch.optim.Adam(self.model.parameters())
         if func.has_code_checkpoint():
             accuracy = self.evaluate_epoch(m, batch_size)
