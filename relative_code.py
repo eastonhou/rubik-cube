@@ -19,7 +19,7 @@ def _valid_operations(cube, sequence, operations):
     result = []
     for _op in _operations:
         _last_op, _last_count = _determine_last_operations(sequence)
-        if _last_op == _op[0] and _last_count + len(_op) >= 4:
+        if _last_op == _op[0]:
             continue
         else:
             _cube = cube.copy()
