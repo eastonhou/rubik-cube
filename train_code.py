@@ -56,7 +56,7 @@ class Trainer:
             print(f'INITIAL ACCURACY={accuracy:>.6f}')
         else:
             accuracy = 0
-        autodecay = AutoDecay(optimizer, not_learning_counter=10, patience=2, max_lr=1E-3, min_lr=2E-5)
+        autodecay = AutoDecay(optimizer, not_learning_counter=10, patience=2, max_lr=1E-4, min_lr=2E-5)
         autodecay.update_accuracy(accuracy, 1000)
         while True:
             self.producer.reset()
