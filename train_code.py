@@ -1,4 +1,4 @@
-import torch, tqdm
+import torch, tqdm, random
 import func
 from definitions import Cube
 from optimization import AutoDecay
@@ -13,6 +13,7 @@ class Producer(DataProducer):
         codes = list(code_steps.keys())
         self.cache = {}
         self.codes = torch.tensor(codes, dtype=torch.uint8, device=0)
+        self.xqueue = []
         self.reset()
         self.start()
 
@@ -31,6 +32,7 @@ class Producer(DataProducer):
         cube = Cube()
         cube.apply_operations(operations)
         label = self._make_label(cube)
+        self.xqueue.append((cube, label))
         self.put([(cube, label)])
 
     def print_summary(self):
@@ -41,7 +43,12 @@ class Producer(DataProducer):
         self.label_correction = 0
 
     def get(self, size):
-        cubes, labels = zip(*super(__class__, self).get(size, force_size=True))
+        cubes, labels = zip(*super(__class__, self).get(size, force_size=len(self.xqueue)<size))
+        if len(cubes) < size:
+            _records = random.choices(self.xqueue, k=size-len(cubes))
+            _cubes, _labels = zip(*_records)
+            cubes += _cubes
+            labels += _labels
         return cubes, labels
 
 class Trainer:
@@ -50,30 +57,14 @@ class Trainer:
         self.producer = Producer()
 
     def run(self, n=200, m=40, batch_size=256):
-        optimizer = torch.optim.Adam(self.model.parameters())
-        if func.has_code_checkpoint():
-            accuracy = self.evaluate_epoch(m, batch_size)
-            print(f'INITIAL ACCURACY={accuracy:>.6f}')
-        else:
-            accuracy = 0
-        autodecay = AutoDecay(optimizer, not_learning_counter=10, patience=2, max_lr=1E-4, min_lr=2E-5)
-        autodecay.update_accuracy(accuracy, 1000)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=8E-5)
         while True:
             self.producer.reset()
             loss = self.train_epoch(optimizer, n, batch_size)
             accuracy = self.evaluate_epoch(m, batch_size)
-            admsg = f'ACCURACY={accuracy:>.6f}/{autodecay.last_accuracy:>.6F}'\
-                f' LOSS={loss:>.4F}'\
-                f' C/D={autodecay.counter}/{autodecay.decay_counter}'\
-                f' lr={autodecay.learning_rate}'
-            if autodecay.update_accuracy(accuracy, loss):
-                func.save_code_model(self.model)
-                print(f'SAVE MODEL: {admsg}')
-            else:
-                print(f'CONTINUE: {admsg}')
-            if autodecay.should_stop():
-                self.model = func.load_code_model()
-                autodecay.reset()
+            admsg = f'ACCURACY={accuracy:>.6f} LOSS={loss:>.4F}'
+            func.save_code_model(self.model)
+            print(f'SAVE MODEL: {admsg}')
             self.producer.print_summary()
 
     def train_epoch(self, optimizer, n, batch_size):
