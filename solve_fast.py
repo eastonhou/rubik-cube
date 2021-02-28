@@ -10,7 +10,7 @@ def search(model, cube, level):
         for _ in range(256):
             _ops = func.random_operations(level, np.random.randint(1, maxdepth+1))
             _cube = cube.copy()
-            func.apply_operations(_cube, _ops)
+            _cube.apply_operations(_ops)
             ops.append(_ops)
             cubes.append(_cube)
         levels = model.predict(cubes, level)
@@ -20,13 +20,17 @@ def search(model, cube, level):
     return None
 
 if __name__ == '__main__':
-    cube = Cube([
-        list('booywrgob'),
-        list('gwyyybrby'),
-        list('owwwrbrgo'),
-        list('ygogorrob'),
-        list('wowggbyrw'),
-        list('rwbybygrg')
+    cube = Cube.from_data([
+        'ywyywywwy',
+        'wwyyywwyw',
+        'bororogrr',
+        'obororogo',
+        'bbrggbbor',
+        'grggbbbgg'
     ])
-    sequence = func.solve(cube, search)
-    print(sequence)
+    cube.apply_operations(['R2', 'D', 'F2', 'U2', 'U'])
+    seq = func.solve(cube, search)
+    print(seq)
+    cube.apply_operations(seq)
+    cube.print()
+    assert cube.hash == Cube.FINALE

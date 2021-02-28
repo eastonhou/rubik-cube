@@ -186,12 +186,12 @@ def search(model, cube, level):
 
 if __name__ == '__main__':
     cube = Cube.from_data([
-        'ywyywywwy',
-        'wwyyywwyw',
-        'bororogrr',
-        'obororogo',
-        'bbrggbbor',
-        'grggbbbgg'
+        'yworwrgyo',
+        'rbbwyyobb',
+        'wowrrgywo',
+        'wgrborwog',
+        'ggrygbyob',
+        'bwgobyygr'
     ])
     #cube.apply_operations(['R2', 'D', 'F2', 'U', 'U2', 'R2', 'B2', 'U', 'F2', 'L2', 'U2', 'F2', 'R2', 'D', 'F2'])
     #cube = Cube()

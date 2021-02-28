@@ -16,11 +16,11 @@ def _valid_operations(cube, sequence, operations):
     result = []
     for _op in _operations:
         _last_op, _last_count = _determine_last_operations(sequence)
-        if _last_op == _op[0] and _last_count + len(_op) >= 4:
+        if _last_op == _op[0]:
             continue
         else:
             _cube = cube.copy()
-            func.apply_operation(_cube, _op)
+            _cube.apply_operation(_op)
             result.append((_op, _cube))
     return result
 
@@ -51,13 +51,17 @@ def search(model, cube, level):
             return _sequence
 
 if __name__ == '__main__':
-    cube = Cube([
-        list('booywrgob'),
-        list('gwyyybrby'),
-        list('owwwrbrgo'),
-        list('ygogorrob'),
-        list('wowggbyrw'),
-        list('rwbybygrg')
+    cube = Cube.from_data([
+        'wwrwwgryb',
+        'gorbywwro',
+        'ybybrgryw',
+        'bbbgogyyg',
+        'orgrgroow',
+        'owyobybog'
     ])
-    sequence = func.solve(cube, search)
-    print(sequence)
+    #cube.apply_operation('R2')
+    seq = func.solve(cube, search)
+    print(seq)
+    cube.apply_operations(seq)
+    cube.print()
+    assert cube.hash == Cube.FINALE
