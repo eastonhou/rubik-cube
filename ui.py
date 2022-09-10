@@ -128,7 +128,8 @@ class Window:
 
         @self.window.event
         def on_key_press(key, modifiers):
-            key = chr(key)
+            if key == -1: return
+            key = chr(key).upper()
             operations = 'UDFBLR'
             if key in operations:
                 times = 3 if (modifiers&1) else 1
