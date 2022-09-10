@@ -157,12 +157,11 @@ def solve(cube, search_method):
     level = 0
     with torch.no_grad():
         sequence = []
-        while True:
+        while cube.hash != Cube.FINALE:
             level = model.predict([cube], level, 8)[0]
             print(f'current level: {level}')
             timer = Timer()
-            if level == 4:
-                break
+            if level == 4: break
             _sequence = search_method(model, cube, level)
             sequence += _sequence
             cube.apply_operations(_sequence)

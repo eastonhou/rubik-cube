@@ -74,7 +74,7 @@ class Model(ModelBase):
             sample_cubes = self._sample_cubes(cubes, levels, 15)
             levels = self._predict_majority(sample_cubes, 30)
             for i,cube in enumerate(cubes):
-                if cube.hash in self.state3:
+                if cube.hash in self.state3_steps:
                     levels[i] = 4 if cube.hash == Cube.FINALE else 3
             return levels
 

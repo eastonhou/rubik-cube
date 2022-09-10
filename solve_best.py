@@ -52,12 +52,12 @@ def search(model, cube, level):
 
 if __name__ == '__main__':
     cube = Cube.from_data([
-        'wwrwwgryb',
-        'gorbywwro',
-        'ybybrgryw',
-        'bbbgogyyg',
-        'orgrgroow',
-        'owyobybog'
+        'yyyywwwww',
+        'wywwyyywy',
+        'rroorrroo',
+        'rrorooroo',
+        'bbgggbgbb',
+        'ggbbbgbgg'
     ])
     #cube.apply_operation('R2')
     seq = func.solve(cube, search)

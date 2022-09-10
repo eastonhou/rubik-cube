@@ -22,7 +22,7 @@ def dump_state3():
 
 def verify_state3():
     import numpy as np
-    cache = func.load('state3.pkl')
+    cache = func.load('state3-steps.pkl')
     assert cache[Cube().hash] == 0
     for _ in range(16):
         cube = Cube()
@@ -47,13 +47,13 @@ def collect_code(state3, cube, cache, depth=1):
             collect_code(state3, _cube, cache, depth+1)
 
 def dump_state3_code():
-    state3 = func.load('state3.pkl')
+    state3 = func.load('state3-steps.pkl')
     cache = {Cube().hash: func.compute_relative_code(Cube(), Cube())}
     collect_code(state3, Cube(), cache)
     func.dump('state3-codes.pkl', cache)
     print(f'{len(cache)} records dumped')
 
 if __name__ == '__main__':
-    #dump_state3_code()
-    #dump_state3()
+    dump_state3()
+    dump_state3_code()
     verify_state3()

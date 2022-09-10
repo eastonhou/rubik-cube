@@ -29,6 +29,28 @@
             }
         },
         {
+            "name": "state3",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/state3.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
+            "name": "code",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/relative_code.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
             "name": "train",
             "type": "python",
             "request": "launch",
@@ -74,28 +96,6 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
-        },
-        {
-            "name": "state3",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/state3.py",
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            },
-        },
-        {
-            "name": "code",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/relative_code.py",
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            },
         }
     ]
 }

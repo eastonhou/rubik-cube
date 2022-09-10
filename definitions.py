@@ -1,7 +1,10 @@
 import numpy as np
+import hashlib
 
 def _hash(value):
-    return hash(tuple(value))
+    h1 = hashlib.md5()
+    h1.update(np.ascontiguousarray(value.data))
+    return int.from_bytes(h1.digest(), 'little')
 
 def _template():
     layer0 = np.tile(np.arange(6, dtype=np.uint8), (9,1)).transpose()
@@ -9,7 +12,7 @@ def _template():
     return np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
 
 class Cube:
-    FINALE = _hash(np.reshape(np.tile(np.arange(6), (9,1)).transpose(), -1))
+    FINALE = _hash(np.reshape(np.tile(np.arange(6, dtype=np.uint8), (9,1)).transpose(), -1))
     TEMPLATE = _template()
     @staticmethod
     def from_data(data):
