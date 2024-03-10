@@ -16,6 +16,7 @@ class Cube:
     TEMPLATE = _template()
     @staticmethod
     def from_data(data):
+        data = __class__.normalize(data)
         cmap = {k:v for v,k in enumerate('wyrogb')}
         layer0 = np.array([[cmap[x] for x in y] for y in data], dtype=np.uint8)
         layer1 = np.tile(np.full(9, 4, dtype=np.uint8), (6,1))
@@ -23,6 +24,12 @@ class Cube:
         cube._data = np.reshape(np.stack((layer0, layer1), axis=-1), (-1,2))
         assert cube.validate()
         return cube
+
+    @staticmethod
+    def normalize(data):
+        m = {line[4]: c for line, c in zip(data, 'wyrogb')}
+        data = [''.join(m[x] for x in line) for line in data]
+        return data
 
     def to_data(self):
         cmap = np.array(list('wyrogb'))
